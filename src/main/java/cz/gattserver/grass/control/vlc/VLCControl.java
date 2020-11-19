@@ -1,4 +1,4 @@
-package cz.gattserver.vlc.remote.telnet;
+package cz.gattserver.grass.control.vlc;
 
 import java.beans.PropertyChangeSupport;
 import java.io.*;
@@ -9,14 +9,17 @@ import org.apache.commons.net.telnet.*;
 import org.apache.commons.net.telnet.TelnetClient;
 
 /**
- * Exposes control of VLC media player (videolan.org) from java. VLC must be set up to open a telnet control on
- * localhost:4444.
+ * Exposes control of VLC media player (videolan.org) from java. VLC must be set
+ * up to open a telnet control on localhost:4444.
  * <p>
- * For VLC 1.1.5, use the following setup to expose the remote control (rc) interrface for telnet control:
+ * For VLC 1.1.5, use the following setup to expose the remote control (rc)
+ * interrface for telnet control:
  * <p>
- * This setting is in VLC Tools/Preferences/Show settings (All)/Interface/Main interfaces. Select the
- * "Remote Control Interface" and replace "oldrc" with "rc" in the text field. In VLC Tools/Preferences/Show settings
- * (All)/Interface/Main interfaces/RC/TCP command input, put the string "localhost:4444" in the text field.
+ * This setting is in VLC Tools/Preferences/Show settings (All)/Interface/Main
+ * interfaces. Select the "Remote Control Interface" and replace "oldrc" with
+ * "rc" in the text field. In VLC Tools/Preferences/Show settings
+ * (All)/Interface/Main interfaces/RC/TCP command input, put the string
+ * "localhost:4444" in the text field.
  *
  * @author Tobi
  */
@@ -26,9 +29,11 @@ public class VLCControl extends TelnetClient implements Runnable, TelnetNotifica
 	public static final int VLC_PORT = 4212;
 	public static final String VLC_PASS = "vlcgatt";
 	static final Logger log = Logger.getLogger("VLCControl");
-	private static VLCControl staticInstance = null; // used to communicate among instances the active client
-	private PropertyChangeSupport support = new PropertyChangeSupport(this); // listeners get informed by output from
-																				// VLC strings
+
+	// used to communicate among instances the active client
+	private static VLCControl staticInstance = null;
+	// listeners get informed by output from VLC strings
+	private PropertyChangeSupport support = new PropertyChangeSupport(this);
 
 	public VLCControl() {
 	}
@@ -40,35 +45,39 @@ public class VLCControl extends TelnetClient implements Runnable, TelnetNotifica
 	}
 
 	public void connect() throws IOException {
-		staticInstance = this; // used by reader to get input stream
+		// used by reader to get input stream
+		staticInstance = this;
 		try {
 			staticInstance.connect("localhost", VLC_PORT);
-			Thread thread = new Thread(new VLCControl()); // starts the thread to get the text sent back from VLC
+			// starts the thread to get the text sent back from VLC
+			Thread thread = new Thread(new VLCControl());
 			thread.start();
-			staticInstance.registerNotifHandler(this); // notifications call back to logger
-			Runtime.getRuntime().addShutdownHook(new Thread() { // shutdown hook here makes sure to disconnect cleanly,
-																// as long as we are not terminated
-
-						@Override
-						public void run() {
-							try {
-								if (isConnected()) {
-									disconnect();
-								}
-							} catch (IOException ex) {
-								log.warning(ex.toString());
-							}
-						}
-					});
+			// notifications call back to logger
+			staticInstance.registerNotifHandler(this);
+			// shutdown hook here makes sure to disconnect cleanly, as long as
+			// we are not terminated
+			Runtime.getRuntime().addShutdownHook(new Thread() {
+				@Override
+				public void run() {
+					try {
+						if (isConnected())
+							disconnect();
+					} catch (IOException ex) {
+						log.warning(ex.toString());
+					}
+				}
+			});
 			sendCommand(VLC_PASS);
 		} catch (IOException e) {
-			log.warning("couldn't connect to VLC - you may need to start VLC with command line \"vlc --rc-host=localhost:4444\"");
+			log.warning(
+					"couldn't connect to VLC - you may need to start VLC with command line \"vlc --rc-host=localhost:4444\"");
 			throw new IOException(e);
 		}
 	}
 
 	/**
-	 * Sends a string command. Commands do not need to be terminated with a newline.
+	 * Sends a string command. Commands do not need to be terminated with a
+	 * newline.
 	 * <p>
 	 * 
 	 * <pre>
@@ -142,32 +151,30 @@ public class VLCControl extends TelnetClient implements Runnable, TelnetNotifica
 	 * </pre>
 	 */
 	public String sendCommand(String s) throws IOException {
-		if (!isConnected()) {
+		if (!isConnected())
 			connect();
-		}
-		if (s == null) {
+		if (s == null)
 			return null;
-		}
-		if (!s.endsWith("\n")) {
+		if (!s.endsWith("\n"))
 			s = s + "\n";
-		}
 		getOutputStream().write(s.getBytes());
 		getOutputStream().flush();
 		return s;
 	}
 
-	public static String PAUSE = "pause", PLAY = "play", STOP = "stop", NEXT = "next", PREV = "prev",
-			VOLUP = "volup 1", VOLDOWN = "voldown 1";
+	public static String PAUSE = "pause", PLAY = "play", STOP = "stop", NEXT = "next", PREV = "prev", VOLUP = "volup 1",
+			VOLDOWN = "voldown 1";
+
 	public static final String CLIENT_MESSAGE = "ClientMessage";
 
 	/***
-	 * Reader thread. Reads lines from the TelnetClient and echoes them on the logger. PropertyChangeListeners are
-	 * called with CLIENT_MESSAGE and String sent from VLC.
+	 * Reader thread. Reads lines from the TelnetClient and echoes them on the
+	 * logger. PropertyChangeListeners are called with CLIENT_MESSAGE and String
+	 * sent from VLC.
 	 ***/
 	@Override
 	public void run() {
 		InputStream instr = staticInstance.getInputStream();
-
 		byte[] buff = new byte[1024];
 		int ret_read = 0;
 
@@ -177,10 +184,9 @@ public class VLCControl extends TelnetClient implements Runnable, TelnetNotifica
 				if (ret_read > 0) {
 					String s = new String(buff, 0, ret_read);
 					log.info(s);
-					staticInstance.getSupport().firePropertyChange(CLIENT_MESSAGE, null, s); // listener on static
-																								// instance that
-																								// actually is connected
-																								// gets the message
+					// listener on static instance that actually is connected
+					// gets the message
+					staticInstance.getSupport().firePropertyChange(CLIENT_MESSAGE, null, s);
 				}
 			} while (ret_read >= 0);
 		} catch (Exception e) {
@@ -189,11 +195,13 @@ public class VLCControl extends TelnetClient implements Runnable, TelnetNotifica
 	}
 
 	/***
-	 * Callback method called when TelnetClient receives an option negotiation command.
+	 * Callback method called when TelnetClient receives an option negotiation
+	 * command.
 	 * <p>
 	 * 
 	 * @param negotiation_code
-	 *            - type of negotiation command received (RECEIVED_DO, RECEIVED_DONT, RECEIVED_WILL, RECEIVED_WONT)
+	 *            - type of negotiation command received (RECEIVED_DO,
+	 *            RECEIVED_DONT, RECEIVED_WILL, RECEIVED_WONT)
 	 *            <p>
 	 * @param option_code
 	 *            - code of the option negotiated
@@ -215,7 +223,8 @@ public class VLCControl extends TelnetClient implements Runnable, TelnetNotifica
 	}
 
 	/**
-	 * @return the support. Listeners can get the stuff sent back from VLC with CLIENT_MESSAGE events.
+	 * @return the support. Listeners can get the stuff sent back from VLC with
+	 *         CLIENT_MESSAGE events.
 	 */
 	public PropertyChangeSupport getSupport() {
 		return support;
