@@ -51,16 +51,16 @@ public enum SpeechControl {
 					break;
 				case "grass control open you tube":
 					break;
-				case "grass control v l c next":
+				case "v l c next":
 					VLCControl.INSTANCE.sendCommand(VLCCommand.NEXT);
 					break;
-				case "grass control v l c previous":
+				case "v l c previous":
 					VLCControl.INSTANCE.sendCommand(VLCCommand.NEXT);
 					break;
-				case "grass control v l c stop":
+				case "v l c stop":
 					VLCControl.INSTANCE.sendCommand(VLCCommand.PAUSE);
 					break;
-				case "grass control v l c play":
+				case "v l c play":
 					VLCControl.INSTANCE.sendCommand(VLCCommand.PLAY);
 					break;
 				}

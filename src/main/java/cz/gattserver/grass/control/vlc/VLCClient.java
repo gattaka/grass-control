@@ -151,7 +151,7 @@ class VLCClient extends TelnetClient implements Runnable, TelnetNotificationHand
 	 * </pre>
 	 */
 	public void sendCommand(VLCCommand command) throws IOException {
-		System.out.println("VLC Command: " + command.getSignalName());
+		logger.info("VLC Command: " + command.getSignalName());
 		sendString(command.getSignalName());
 	}
 
