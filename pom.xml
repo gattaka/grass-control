@@ -4,8 +4,7 @@
 	<groupId>cz.gattserver</groupId>
 	<artifactId>grass-control</artifactId>
 	<version>1.0.0-SNAPSHOT</version>
-	<name>Grass controller for various things (VLC, web)</name>
-	<description>VLC remote controller server part for Bluetooth device</description>
+	<name>Grass controller</name>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -76,4 +75,5 @@
 		</plugins>
 	</build>
 
+	<description>Controller for various things (VLC, Web...) by various means (BT, Speech recognition...)</description>
 </project>
