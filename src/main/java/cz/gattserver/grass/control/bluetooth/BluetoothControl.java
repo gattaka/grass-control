@@ -10,7 +10,7 @@ import javax.microedition.io.StreamConnection;
 
 import cz.gattserver.grass.control.vlc.VLCControl;
 
-public enum BTControl {
+public enum BluetoothControl {
 
 	INSTANCE;
 
@@ -24,15 +24,15 @@ public enum BTControl {
 
 	public void start() {
 		if (running)
-			throw new IllegalStateException("BTControl is already running");
+			throw new IllegalStateException(BluetoothControl.class.getName() + " is already running");
 		running = true;
 		new Thread(new Runnable() {
 			@Override
 			public void run() {
 				try {
-					runBTControl();
+					runControl();
 				} catch (InterruptedException e) {
-					throw new IllegalStateException("BTControl was interrupted", e);
+					throw new IllegalStateException(BluetoothControl.class.getName() + " was interrupted", e);
 				}
 			}
 		}).start();
@@ -42,7 +42,7 @@ public enum BTControl {
 		running = false;
 	}
 
-	private void runBTControl() throws InterruptedException {
+	private void runControl() throws InterruptedException {
 		StreamConnection con = null;
 		InputStream isd = null;
 		RemoteDevice device = null;
@@ -61,16 +61,16 @@ public enum BTControl {
 					Toolkit.getDefaultToolkit().beep();
 				}
 
-				// Pouze tÌmto vol·nÌm se d· zjistit, zda je za¯ÌzenÌ jeötÏ
-				// st·le zapnutÈ, nebo se vypnulo. OstanÌ metody jsou
-				// false-positive. P¯ipojenÌ se musÌ resetovat, protoûe p¯i
-				// opÏtovnÈm zapnutÌ BT modulu se nenavazuje na otev¯enÈ
-				// spojenÌ, byù to ani samo odpojenÌm BT modulu nespadne.
-				if (!device.isAuthenticated()) {
-					// odpojeno -- vöechno vyhoÔ a zkouöej se znovu p¯ipojit --
-					// Ëekej aû se znovu zapne
+				// Pouze tƒõmto vol√°n√≠m se d√° zjistit, zda je za≈ô√≠zen√≠ je≈°tƒõ
+				// st√°le zapnut√©, nebo se vypnulo. Ostan√≠ metody jsou
+				// false-positive. P≈ôipojen√≠ se mus√≠ resetovat, proto≈æe p≈ôi
+				// opƒõtovn√©m zapnut√≠ BT modulu se nenavazuje na otev≈ôen√©
+				// spojen√≠, by≈• to ani samo odpojen√≠m BT modulu nespadne.
+				//
+				// Odpojeno -- v≈°echno vyhoƒè a zkou≈°ej se znovu p≈ôipojit --
+				// ƒçekej a≈æ se znovu zapne
+				if (!device.isAuthenticated())
 					throw new IOException();
-				}
 
 				while (isd.available() > 0) {
 					int c = isd.read();
@@ -79,61 +79,40 @@ public enum BTControl {
 			} catch (IOException e) {
 				if (isd != null)
 					System.out.println("BT module disconnected");
-				// nezda¯ilo se p¯ipojit/ËÌst -- poËkej a zkus to znovat
-				try {
-					Thread.sleep(MILISEC_TO_RECONNECT);
-				} catch (InterruptedException e1) {
-					// Chyba sleep
-					System.exit(1);
-				}
-				tryToCleanStreamConnection(con);
-				tryToCleanDataInputStream(isd);
+				// nezda≈ôilo se p≈ôipojit -- poƒçkej a zkus to znovat
+				Thread.sleep(MILISEC_TO_RECONNECT);
 			}
+		}
+		try {
+			tryToCleanStreamConnection(con);
+			tryToCleanDataInputStream(isd);
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 	}
 
-	private void tryToCleanStreamConnection(StreamConnection con) {
-		if (con != null) {
-			try {
-				con.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
+	private void tryToCleanStreamConnection(StreamConnection con) throws IOException {
+		if (con != null)
+			con.close();
 		con = null;
 	}
 
-	private void tryToCleanDataInputStream(InputStream isd) {
-		if (isd != null) {
-			try {
-				isd.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
+	private void tryToCleanDataInputStream(InputStream isd) throws IOException {
+		if (isd != null)
+			isd.close();
 		isd = null;
 	}
 
-	private void tryToCleanVLCConnection(VLCControl vlc) {
-		if (vlc != null) {
-			try {
-				vlc.disconnect();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
+	private void tryToCleanVLCConnection(VLCControl vlc) throws IOException {
+		if (vlc != null)
+			vlc.disconnect();
 		vlc = null;
 	}
 
-	private VLCControl sendVLC(VLCControl vlc, int signal) {
-		try {
-			if (vlc == null) {
-				vlc = new VLCControl();
-				vlc.connect();
-			}
-		} catch (IOException e) {
-			// nelze se p¯ipojit -- p¯Ìkaz je zahozen
-			return vlc;
+	private VLCControl sendVLC(VLCControl vlc, int signal) throws IOException {
+		if (vlc == null) {
+			vlc = new VLCControl();
+			vlc.connect();
 		}
 
 		try {
@@ -156,7 +135,7 @@ public enum BTControl {
 				break;
 			}
 		} catch (IOException e) {
-			// nelze se poslat sign·l-- p¯Ìkaz je zahozen
+			// nelze se poslat sign√°l -- p≈ô√≠kaz je zahozen
 			tryToCleanVLCConnection(vlc);
 		}
 		return vlc;
