@@ -23,7 +23,7 @@
  *                                                                       *
  *************************************************************************/
 
-package cz.gattserver.grass.control.speech.voce;
+package voce;
 
 import edu.cmu.sphinx.frontend.util.Microphone;
 import edu.cmu.sphinx.recognizer.Recognizer;
@@ -32,9 +32,7 @@ import edu.cmu.sphinx.util.props.ConfigurationManager;
 import edu.cmu.sphinx.util.props.PropertyException;
 
 import java.util.LinkedList;
-import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 
 /// Handles all speech recognition (i.e. speech-to-text) functions.  Uses 
 /// a separate thread for recognition.  Maintains an internal queue of 

@@ -8,11 +8,17 @@ import javax.bluetooth.RemoteDevice;
 import javax.microedition.io.Connector;
 import javax.microedition.io.StreamConnection;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import cz.gattserver.grass.control.vlc.VLCCommand;
 import cz.gattserver.grass.control.vlc.VLCControl;
 
 public enum BluetoothControl {
 
 	INSTANCE;
+
+	private static final Logger logger = LoggerFactory.getLogger(BluetoothControl.class);
 
 	private static final String PROTOCOL_PREFIX = "btspp://";
 	private static final String DEVICE_ADDRESS = "98D331B2C4A4";
@@ -46,14 +52,13 @@ public enum BluetoothControl {
 		StreamConnection con = null;
 		InputStream isd = null;
 		RemoteDevice device = null;
-		VLCControl vlc = null;
 		while (running) {
 			try {
 				if (con == null) {
 					con = (StreamConnection) Connector.open(URL, Connector.READ, true);
 					device = RemoteDevice.getRemoteDevice(con);
 					isd = con.openInputStream();
-					System.out.println("BT module connected");
+					logger.info("BT module connected");
 					Toolkit.getDefaultToolkit().beep();
 					Thread.sleep(200);
 					Toolkit.getDefaultToolkit().beep();
@@ -74,11 +79,11 @@ public enum BluetoothControl {
 
 				while (isd.available() > 0) {
 					int c = isd.read();
-					vlc = sendVLC(vlc, c);
+					sendVLCCommand(c);
 				}
 			} catch (IOException e) {
 				if (isd != null)
-					System.out.println("BT module disconnected");
+					logger.info("BT module disconnected");
 				// nezdařilo se připojit -- počkej a zkus to znovat
 				Thread.sleep(MILISEC_TO_RECONNECT);
 			}
@@ -103,42 +108,21 @@ public enum BluetoothControl {
 		isd = null;
 	}
 
-	private void tryToCleanVLCConnection(VLCControl vlc) throws IOException {
-		if (vlc != null)
-			vlc.disconnect();
-		vlc = null;
-	}
-
-	private VLCControl sendVLC(VLCControl vlc, int signal) throws IOException {
-		if (vlc == null) {
-			vlc = new VLCControl();
-			vlc.connect();
+	private void sendVLCCommand(int signal) throws IOException {
+		switch (signal) {
+		case 0x81:
+			VLCControl.INSTANCE.sendCommand(VLCCommand.NEXT);
+			break;
+		case 0x82:
+			VLCControl.INSTANCE.sendCommand(VLCCommand.PREV);
+			break;
+		case 0x83:
+			VLCControl.INSTANCE.sendCommand(VLCCommand.VOLUP);
+			break;
+		case 0x84:
+			VLCControl.INSTANCE.sendCommand(VLCCommand.VOLDOWN);
+			break;
 		}
-
-		try {
-			switch (signal) {
-			case 0x81:
-				System.out.println("NEXT");
-				vlc.sendCommand(VLCControl.NEXT);
-				break;
-			case 0x82:
-				System.out.println("PREV");
-				vlc.sendCommand(VLCControl.PREV);
-				break;
-			case 0x83:
-				System.out.println("VOLUME UP");
-				vlc.sendCommand(VLCControl.VOLUP);
-				break;
-			case 0x84:
-				System.out.println("VOLUME DOWN");
-				vlc.sendCommand(VLCControl.VOLDOWN);
-				break;
-			}
-		} catch (IOException e) {
-			// nelze se poslat signál -- příkaz je zahozen
-			tryToCleanVLCConnection(vlc);
-		}
-		return vlc;
 	}
 
 }

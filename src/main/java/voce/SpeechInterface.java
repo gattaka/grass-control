@@ -24,7 +24,7 @@
  *************************************************************************/
 
 /// The main package that contains everything in the Voce Java API.
-package cz.gattserver.grass.control.speech.voce;
+package voce;
 
 /// A set of static methods that give users access to the main speech 
 /// interaction components.  These methods are the only ones exposed to 

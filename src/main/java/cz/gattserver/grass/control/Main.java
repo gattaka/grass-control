@@ -7,20 +7,27 @@ import java.awt.MenuItem;
 import java.awt.PopupMenu;
 import java.awt.SystemTray;
 import java.awt.TrayIcon;
+import java.awt.TrayIcon.MessageType;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 
 import javax.imageio.ImageIO;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import cz.gattserver.grass.control.bluetooth.BluetoothControl;
+import cz.gattserver.grass.control.speech.SpeechControl;
 
 public class Main {
+
+	private static final Logger logger = LoggerFactory.getLogger(Main.class);
 
 	public static void main(String[] args) throws IOException {
 		// Check the SystemTray is supported
 		if (!SystemTray.isSupported()) {
-			System.out.println("SystemTray is not supported");
+			logger.error("SystemTray is not supported");
 			return;
 		}
 		final PopupMenu popup = new PopupMenu();
@@ -61,10 +68,13 @@ public class Main {
 		try {
 			tray.add(trayIcon);
 		} catch (AWTException e) {
-			System.out.println("TrayIcon could not be added.");
+			logger.error("TrayIcon could not be added", e);
 		}
 
-		// BTControl.INSTANCE.start();
+		BluetoothControl.INSTANCE.start();
+		SpeechControl.INSTANCE.start();
+
+		trayIcon.displayMessage("Caption", "text", MessageType.INFO);
 	}
 
 }

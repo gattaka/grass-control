@@ -14,7 +14,14 @@
 	</properties>
 
 	<dependencies>
-	
+
+		<!-- Logování -->
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+			<version>1.2.3</version>
+		</dependency>
+
 		<!-- Bluetooth -->
 		<dependency>
 			<groupId>net.sf.bluecove</groupId>
@@ -45,7 +52,7 @@
 			<artifactId>WSJ_8gau_13dCep_16k_40mel_130Hz_6800Hz</artifactId>
 			<version>1.0</version>
 		</dependency>
-		
+
 	</dependencies>
 
 	<build>

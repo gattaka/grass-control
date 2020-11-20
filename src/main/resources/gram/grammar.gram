@@ -1,0 +1,6 @@
+#JSGF V1.0;
+
+grammar all;
+public <commands> = grass control (open <targets> | V L C <vlc-commands>);
+<vlc-commands> = (next | previous | stop | play);
+<targets> = (hardware | articles | calculator | you tube);

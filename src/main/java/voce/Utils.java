@@ -23,7 +23,7 @@
  *                                                                       *
  *************************************************************************/
 
-package cz.gattserver.grass.control.speech.voce;
+package voce;
 
 /// A collection of utility functions used in Voce.
 public class Utils {

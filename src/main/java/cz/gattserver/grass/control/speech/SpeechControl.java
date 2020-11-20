@@ -1,12 +1,17 @@
 package cz.gattserver.grass.control.speech;
 
-import cz.gattserver.grass.control.speech.voce.SpeechInterface;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import cz.gattserver.grass.control.vlc.VLCCommand;
+import cz.gattserver.grass.control.vlc.VLCControl;
+import voce.SpeechInterface;
 
 public enum SpeechControl {
 
 	INSTANCE;
 
-	private static final String ENDPHRASE = "grass end the recognition";
+	private static final Logger logger = LoggerFactory.getLogger(SpeechControl.class);
 
 	private volatile boolean running = false;
 
@@ -32,17 +37,35 @@ public enum SpeechControl {
 
 	private void runControl() throws InterruptedException {
 		SpeechInterface.init();
-		System.out.println("Initialized... say '" + ENDPHRASE + "' to quit.");
-
-		// Normally, applications would do application-specific things
-		// here. For this sample, we'll just sleep for a little bit.
-		Thread.sleep(200);
-
-		while (running && SpeechInterface.getRecognizerQueueSize() > 0) {
-			String s = SpeechInterface.popRecognizedString();
-			System.out.println("You said: " + s);
+		logger.info("Speech recognition initialized");
+		while (running) {
+			while (SpeechInterface.getRecognizerQueueSize() > 0) {
+				String s = SpeechInterface.popRecognizedString();
+				logger.info("You said: " + s);
+				switch (s) {
+				case "grass control open hardware":
+					break;
+				case "grass control open articles":
+					break;
+				case "grass control open calculator":
+					break;
+				case "grass control open you tube":
+					break;
+				case "grass control v l c next":
+					VLCControl.INSTANCE.sendCommand(VLCCommand.NEXT);
+					break;
+				case "grass control v l c previous":
+					VLCControl.INSTANCE.sendCommand(VLCCommand.NEXT);
+					break;
+				case "grass control v l c stop":
+					VLCControl.INSTANCE.sendCommand(VLCCommand.PAUSE);
+					break;
+				case "grass control v l c play":
+					VLCControl.INSTANCE.sendCommand(VLCCommand.PLAY);
+					break;
+				}
+			}
 		}
-
 		SpeechInterface.destroy();
 	}
 
