@@ -14,9 +14,6 @@ public enum CmdControl {
 	public void openChrome(String page) {
 		String command = "start chrome " + page;
 		ProcessBuilder pb = new ProcessBuilder("cmd.exe", "/c", command);
-
-		// staré API... toFile :( Ale tohle se stejně nedá testovat,
-		// protože OS-specific
 		try {
 			pb.start();
 		} catch (IOException e) {

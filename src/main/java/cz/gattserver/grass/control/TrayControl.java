@@ -1,6 +1,9 @@
 package cz.gattserver.grass.control;
 
 import java.awt.AWTException;
+import java.awt.CheckboxMenuItem;
+import java.awt.MenuItem;
+import java.awt.PopupMenu;
 import java.awt.SystemTray;
 import java.awt.TrayIcon;
 import java.awt.TrayIcon.MessageType;
@@ -12,6 +15,8 @@ import javax.imageio.ImageIO;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import cz.gattserver.grass.control.speech.SpeechControl;
 
 public enum TrayControl {
 
@@ -28,11 +33,27 @@ public enum TrayControl {
 			return;
 		}
 
+		PopupMenu popup = new PopupMenu();
+
 		// src/main/resources/favicon.png
 		InputStream is = Main.class.getClassLoader().getResourceAsStream("favicon.png");
 		BufferedImage image = ImageIO.read(is);
 		trayIcon = new TrayIcon(image, "Grass control");
 		SystemTray tray = SystemTray.getSystemTray();
+
+		CheckboxMenuItem speechRecognitionCheckbox = new CheckboxMenuItem("Speech recognition enabled", true);
+		speechRecognitionCheckbox
+				.addItemListener(e -> SpeechControl.INSTANCE.setEnabled(speechRecognitionCheckbox.getState()));
+
+		MenuItem exitItem = new MenuItem("Exit");
+		exitItem.addActionListener(l -> System.exit(0));
+
+		// Add components to pop-up menu
+		popup.add(speechRecognitionCheckbox);
+		popup.addSeparator();
+		popup.add(exitItem);
+
+		trayIcon.setPopupMenu(popup);
 
 		try {
 			tray.add(trayIcon);

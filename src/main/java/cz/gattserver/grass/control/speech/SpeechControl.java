@@ -16,6 +16,7 @@ public enum SpeechControl {
 	private static final Logger logger = LoggerFactory.getLogger(SpeechControl.class);
 
 	private volatile boolean running = false;
+	private volatile boolean enabled = true;
 
 	public void start() {
 		if (running)
@@ -54,33 +55,59 @@ public enum SpeechControl {
 				case "grass control open you tube":
 					break;
 				case "v l c next":
-					VLCControl.INSTANCE.sendCommand(VLCCommand.NEXT);
-					TrayControl.INSTANCE.showMessage(s);
+					executeCommand(() -> {
+						VLCControl.INSTANCE.sendCommand(VLCCommand.NEXT);
+						TrayControl.INSTANCE.showMessage(s);
+					});
 					break;
 				case "v l c previous":
-					VLCControl.INSTANCE.sendCommand(VLCCommand.NEXT);
-					TrayControl.INSTANCE.showMessage(s);
+					executeCommand(() -> {
+						VLCControl.INSTANCE.sendCommand(VLCCommand.NEXT);
+						TrayControl.INSTANCE.showMessage(s);
+					});
 					break;
 				case "v l c stop":
-					VLCControl.INSTANCE.sendCommand(VLCCommand.PAUSE);
-					TrayControl.INSTANCE.showMessage(s);
+					executeCommand(() -> {
+						VLCControl.INSTANCE.sendCommand(VLCCommand.PAUSE);
+						TrayControl.INSTANCE.showMessage(s);
+					});
 					break;
 				case "v l c play":
-					VLCControl.INSTANCE.sendCommand(VLCCommand.PLAY);
-					TrayControl.INSTANCE.showMessage(s);
+					executeCommand(() -> {
+						VLCControl.INSTANCE.sendCommand(VLCCommand.PLAY);
+						TrayControl.INSTANCE.showMessage(s);
+					});
 					break;
 				case "grass control open grass":
-					CmdControl.INSTANCE.openChrome("www.gattserver.cz");
-					TrayControl.INSTANCE.showMessage(s);
+					executeCommand(() -> {
+						CmdControl.INSTANCE.openChrome("www.gattserver.cz");
+						TrayControl.INSTANCE.showMessage(s);
+					});
 					break;
 				case "grass control open nexus":
-					CmdControl.INSTANCE.openChrome("https://www.gattserver.cz:8843");
-					TrayControl.INSTANCE.showMessage(s);
+					executeCommand(() -> {
+						CmdControl.INSTANCE.openChrome("https://www.gattserver.cz:8843");
+						TrayControl.INSTANCE.showMessage(s);
+					});
 					break;
 				}
 			}
 		}
 		SpeechInterface.destroy();
+	}
+
+	private void executeCommand(Command command) {
+		if (!enabled) {
+			String msg = "Speech recognition is disabled";
+			TrayControl.INSTANCE.showMessage(msg);
+			logger.info(msg);
+			return;
+		}
+		command.execute();
+	}
+
+	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
 	}
 
 }
