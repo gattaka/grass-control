@@ -2,7 +2,7 @@
 
 grammar all;
 public <commands> = grass control (open <targets>);
-<targets> = (hardware | articles | calculator | you tube);
+<targets> = (grass | nexus | hardware | articles | calculator | you tube);
 
 public <vlc> = v l c <vlc-commands>;
 <vlc-commands> = (next | previous | stop | play);

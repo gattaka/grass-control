@@ -3,6 +3,8 @@ package cz.gattserver.grass.control.speech;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import cz.gattserver.grass.control.CmdControl;
+import cz.gattserver.grass.control.TrayControl;
 import cz.gattserver.grass.control.vlc.VLCCommand;
 import cz.gattserver.grass.control.vlc.VLCControl;
 import voce.SpeechInterface;
@@ -53,15 +55,27 @@ public enum SpeechControl {
 					break;
 				case "v l c next":
 					VLCControl.INSTANCE.sendCommand(VLCCommand.NEXT);
+					TrayControl.INSTANCE.showMessage(s);
 					break;
 				case "v l c previous":
 					VLCControl.INSTANCE.sendCommand(VLCCommand.NEXT);
+					TrayControl.INSTANCE.showMessage(s);
 					break;
 				case "v l c stop":
 					VLCControl.INSTANCE.sendCommand(VLCCommand.PAUSE);
+					TrayControl.INSTANCE.showMessage(s);
 					break;
 				case "v l c play":
 					VLCControl.INSTANCE.sendCommand(VLCCommand.PLAY);
+					TrayControl.INSTANCE.showMessage(s);
+					break;
+				case "grass control open grass":
+					CmdControl.INSTANCE.openChrome("www.gattserver.cz");
+					TrayControl.INSTANCE.showMessage(s);
+					break;
+				case "grass control open nexus":
+					CmdControl.INSTANCE.openChrome("https://www.gattserver.cz:8843");
+					TrayControl.INSTANCE.showMessage(s);
 					break;
 				}
 			}
