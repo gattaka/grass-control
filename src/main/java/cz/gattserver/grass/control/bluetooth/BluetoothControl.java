@@ -86,26 +86,26 @@ public enum BluetoothControl {
 					logger.info("BT module disconnected");
 				// nezdařilo se připojit -- počkej a zkus to znovat
 				Thread.sleep(MILISEC_TO_RECONNECT);
+				try {
+					con = tryToCleanStreamConnection(con);
+					isd = tryToCleanDataInputStream(isd);
+				} catch (IOException e2) {
+					logger.info("BT StreamConnection/InputStream close failed", e2);
+				}
 			}
 		}
-		try {
-			tryToCleanStreamConnection(con);
-			tryToCleanDataInputStream(isd);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
 	}
 
-	private void tryToCleanStreamConnection(StreamConnection con) throws IOException {
+	private StreamConnection tryToCleanStreamConnection(StreamConnection con) throws IOException {
 		if (con != null)
 			con.close();
-		con = null;
+		return null;
 	}
 
-	private void tryToCleanDataInputStream(InputStream isd) throws IOException {
+	private InputStream tryToCleanDataInputStream(InputStream isd) throws IOException {
 		if (isd != null)
 			isd.close();
-		isd = null;
+		return null;
 	}
 
 	private void sendVLCCommand(int signal) throws IOException {
