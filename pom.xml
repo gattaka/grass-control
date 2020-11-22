@@ -38,19 +38,14 @@
 
 		<!-- Speech -->
 		<dependency>
-			<groupId>cz.gattserver.libs</groupId>
-			<artifactId>jsapi</artifactId>
-			<version>1.0</version>
+			<groupId>edu.cmu.sphinx</groupId>
+			<artifactId>sphinx4-core</artifactId>
+			<version>5prealphaSN</version>
 		</dependency>
 		<dependency>
-			<groupId>cz.gattserver.libs</groupId>
-			<artifactId>sphinx4</artifactId>
-			<version>1.0</version>
-		</dependency>
-		<dependency>
-			<groupId>cz.gattserver.libs</groupId>
-			<artifactId>WSJ_8gau_13dCep_16k_40mel_130Hz_6800Hz</artifactId>
-			<version>1.0</version>
+			<groupId>edu.cmu.sphinx</groupId>
+			<artifactId>sphinx4-data</artifactId>
+			<version>5prealphaSN</version>
 		</dependency>
 
 	</dependencies>
@@ -64,7 +59,7 @@
 				<directory>src/main/java</directory>
 			</resource>
 		</resources>
-		
+
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -74,8 +69,8 @@
 					<target>1.8</target>
 				</configuration>
 			</plugin>
-		
-			
+
+
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
