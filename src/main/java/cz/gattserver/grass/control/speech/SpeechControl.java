@@ -25,6 +25,18 @@ public enum SpeechControl {
 	private static final String GRAMMAR_PATH = "resource:/gram/";
 	private static final String LANGUAGE_MODEL = "resource:/edu/cmu/sphinx/models/en-us/en-us.lm.bin";
 
+	private static final String PLAYER_NEXT = "grass control player next";
+	private static final String PLAYER_NEXT_SHORTCUT = "player next";
+	private static final String PLAYER_PREVIOUS = "grass control player previous";
+	private static final String PLAYER_PREVIOUS_SHORTCUT = "player previous";
+	private static final String PLAYER_STOP = "grass control player stop";
+	private static final String PLAYER_PLAY = "grass control player play";
+	private static final String HW = "grass control open hardware";
+	private static final String GRASS = "grass control open grass";
+	private static final String NEXUS = "grass control open nexus";
+
+	private static final long TIMEOUT = 10000; // 10s
+
 	private volatile boolean running = false;
 	private volatile boolean enabled = true;
 
@@ -49,7 +61,6 @@ public enum SpeechControl {
 	}
 
 	private void runControl() throws InterruptedException, IOException {
-
 		Configuration configuration = new Configuration();
 		configuration.setAcousticModelPath(ACOUSTIC_MODEL);
 		configuration.setDictionaryPath(DICTIONARY_PATH);
@@ -64,6 +75,7 @@ public enum SpeechControl {
 		recognizer.startRecognition(true);
 		logger.info("Speech recognition initialized");
 		while (running) {
+			LastAcceptedTO lastAccepted = null;
 			while ((result = recognizer.getResult()) != null) {
 				String s = result.getHypothesis();
 				if ("<unk>".equals(s) || "".equals(s))
@@ -83,36 +95,62 @@ public enum SpeechControl {
 				// v l c stop
 				// v l c play
 
+				if (lastAccepted != null && System.currentTimeMillis() - lastAccepted.getTime() > TIMEOUT) {
+					lastAccepted = null;
+					String msg = "Player shortcut window closed";
+					TrayControl.INSTANCE.showMessage(msg);
+					logger.info(msg);
+				}
+
 				switch (s) {
-				case "grass control player next":
+				case PLAYER_NEXT:
 					// false -2.40568032E8
-					executeCommand(s, -2.4E8, -5.11E8, score, () -> VLCControl.INSTANCE.sendCommand(VLCCommand.NEXT));
-					break;
-				case "grass control player previous":
-					// false
-					executeCommand(s, -2.71929344E8, -4.76348384E8, score,
+					lastAccepted = executeCommand(s, -2.4E8, -5.11E8, score,
 							() -> VLCControl.INSTANCE.sendCommand(VLCCommand.NEXT));
 					break;
-				case "grass control player stop":
-					executeCommand(s, -2.3E8, -4.1E8, score, () -> VLCControl.INSTANCE.sendCommand(VLCCommand.PAUSE));
+				case PLAYER_NEXT_SHORTCUT:
+					if (isInPlayerShortcutWindow(lastAccepted)) {
+						// false -1.36 až -2.83
+						// true -1.61 až -1.90
+						lastAccepted = executeCommand(s, -1.5E8, -3.1E8, score,
+								() -> VLCControl.INSTANCE.sendCommand(VLCCommand.NEXT));
+					}
 					break;
-				case "grass control player play":
-					executeCommand(s, -2.4E8, -3.67315744E8, score,
+				case PLAYER_PREVIOUS:
+					// false
+					lastAccepted = executeCommand(s, -2.35E8, -4.76348384E8, score,
+							() -> VLCControl.INSTANCE.sendCommand(VLCCommand.NEXT));
+					break;
+				case PLAYER_PREVIOUS_SHORTCUT:
+					if (isInPlayerShortcutWindow(lastAccepted)) {
+						// false -1.36 až -2.83
+						// true -1.61 až -1.90
+						lastAccepted = executeCommand(s, -1.5E8, -3.1E8, score,
+								() -> VLCControl.INSTANCE.sendCommand(VLCCommand.NEXT));
+					}
+					break;
+				case PLAYER_STOP:
+					lastAccepted = executeCommand(s, -2.3E8, -4.1E8, score,
+							() -> VLCControl.INSTANCE.sendCommand(VLCCommand.PAUSE));
+					break;
+				case PLAYER_PLAY:
+					lastAccepted = executeCommand(s, -2.4E8, -3.67315744E8, score,
 							() -> VLCControl.INSTANCE.sendCommand(VLCCommand.PLAY));
 					break;
-				case "grass control open hardware":
+				case HW:
 					// false -3.29825952E8 až -5.08478624E8
-					executeCommand(s, -2.4E8, -3.29E8, score,
+					lastAccepted = executeCommand(s, -2.4E8, -3.29E8, score,
 							() -> CmdControl.INSTANCE.openChrome("https://www.gattserver.cz/hw"));
 					break;
-				case "grass control open grass":
+				case GRASS:
 					// false -3.01723776E8 až -7.1960922E8
-					executeCommand(s, -2.96E8, -3.0E8, score,
+					// true -2.4 až 4.29 
+					lastAccepted = executeCommand(s, -2.40E8, -3.2E8, score,
 							() -> CmdControl.INSTANCE.openChrome("https://www.gattserver.cz"));
 					break;
-				case "grass control open nexus":
+				case NEXUS:
 					// false
-					executeCommand(s, -2.59455376E8, -4.09875456E8, score,
+					lastAccepted = executeCommand(s, -2.59455376E8, -4.56E8, score,
 							() -> CmdControl.INSTANCE.openChrome("https://www.gattserver.cz:8843"));
 					break;
 				}
@@ -121,19 +159,37 @@ public enum SpeechControl {
 		recognizer.stopRecognition();
 	}
 
-	private void executeCommand(String text, double fromScore, double toScore, Float score, Command command) {
+	private boolean isInPlayerShortcutWindow(LastAcceptedTO to) {
+		if (to == null)
+			return false;
+		switch (to.getText()) {
+		case PLAYER_PLAY:
+		case PLAYER_STOP:
+		case PLAYER_NEXT:
+		case PLAYER_NEXT_SHORTCUT:
+		case PLAYER_PREVIOUS:
+		case PLAYER_PREVIOUS_SHORTCUT:
+			return true;
+		default:
+			return false;
+		}
+	}
+
+	private LastAcceptedTO executeCommand(String text, double fromScore, double toScore, Float score, Command command) {
 		if (!enabled) {
 			String msg = "Speech recognition is disabled";
 			TrayControl.INSTANCE.showMessage(msg);
 			logger.info(msg);
-			return;
+			return null;
 		}
 		if (score <= fromScore && score >= toScore) {
 			TrayControl.INSTANCE.showMessage(text + " (score " + score + ")");
 			logger.info("Score in range");
 			command.execute();
+			return new LastAcceptedTO(text, System.currentTimeMillis());
 		} else {
 			logger.info("Score out of range");
+			return null;
 		}
 	}
 

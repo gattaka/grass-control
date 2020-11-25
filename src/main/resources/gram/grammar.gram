@@ -1,9 +1,9 @@
 #JSGF V1.0;
 
 grammar all;
-public <commands> = grass control (open <targets> | player <vlc-commands>);
+public <commands> = grass control (open <targets> | <vlc-commands>);
 <targets> = (grass | nexus | hardware | articles);
-<vlc-commands> = (next | previous | stop | play);
+public <vlc-commands> = player (next | previous | stop | play );
 
 <misc-grass> = gross | floss | pass | mass;
 <misc-control> = fall | stall | call;
@@ -16,4 +16,4 @@ public <commands> = grass control (open <targets> | player <vlc-commands>);
 <misc-play> = pay | stay | way | may | day;
 <misc-next> = sex | flex; 
 <misc-previous> = hideous;
-<misc-stop> = gross floss | pass; 
+<misc-stop> = top | flop | crop | plot; 
