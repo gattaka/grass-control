@@ -71,104 +71,96 @@ public enum SpeechControl {
 					continue;
 				// prázdné
 				// System.out.println(result.getResult().getFrameStatistics());
-				logger.info("You said: '" + s + "'");
-				logger.info("BestPronunciationResult: " + result.getResult().getBestPronunciationResult());
-				logger.info("BestFinalResultNoFiller: " + result.getResult().getBestFinalResultNoFiller());
 				Token bestToken = result.getResult().getBestFinalToken();
-				if (bestToken != null) {
-					logger.info("AcousticScore: " + bestToken.getAcousticScore());
-					logger.info("LanguageScore: " + bestToken.getLanguageScore());
+				Float score = bestToken == null ? null : bestToken.getScore();
 
-					// Skore je zatím jediný ukazatel, bohužel se podle něj nedá
-					// spolehlivě vylučovat false-positive případy (až na
-					// extrémy)
-					logger.info("Score: " + bestToken.getScore());
+				// Vypadá to, že čím lepší frázování (oddělení slov při
+				// zadávání, tím lepší skore)
+				logger.info("You said: '" + s + "' (score " + score + ")");
 
-					// False-positive score
-					// Score: -1.0025287E9
-					// Score: -1.47891379E9
-					// Score: -2.92505152E8
-					// Score: -3.05739552E8
-					// Score: -3.13359136E8
-					// Score: -4.61158368E8
-					// Score: -4.78037696E8
-					// Score: -4.82785824E8
-					// Score: -5.611808E8
-					// Score: -5.21283104E8
-					// Score: -5.7908256E8
-					// ! Score: -7.2261043E8
-					// ! Score: -7.5503418E8 (ticho a zakašlání)
-					//
-					// Zamumlané positive
-					// Score: -3.28067552E8
-					// Score: -2.42420288E8
-					// Score: -2.32506208E8
-					// Score: -2.63913376E8
-					//
-					// True positive
-					// Score: -5.403209E8
-					// Score: -6.1160442E8
-					// Score: -6.5100301E8
-					// Score: -6.8809613E8
-					// Score: -7.8309696E8
-					// Score: -8.1800442E8
-
-					if (bestToken.getScore() > -4e8)
-						continue;
-
-					// Predecessor jsou u gramatiky vždycky prázdné, až když se
-					// vypne použití gramatiky, se začně něco zobrazovat, ale k
-					// ničemu to moc není
-					AlternateHypothesisManager alternateHypothesisManager = result.getResult()
-							.getAlternateHypothesisManager();
-					if (alternateHypothesisManager != null
-							&& alternateHypothesisManager.hasAlternatePredecessors(bestToken)) {
-						for (Token predecessor : alternateHypothesisManager.getAlternatePredecessors(bestToken)) {
-							logger.info("Predecessor AcousticScore: " + predecessor.getAcousticScore());
-							logger.info("Predecessor LanguageScore: " + predecessor.getLanguageScore());
-							logger.info("Predecessor Score: " + predecessor.getScore());
-						}
-					}
-				}
 				switch (s) {
 				case "grass control player next":
-					executeCommand(() -> {
+					// false
+					// -2.40568032E8
+
+					// true (bez hudby)
+					// -2.75173376E8 až -3.66884512E8
+					// true (s hudbou)
+					// -2.54164672E8 až -3.53690176E8
+					executeCommand(s, -2.54164672E8, -3.66884512E8, score, () -> {
 						VLCControl.INSTANCE.sendCommand(VLCCommand.NEXT);
 						TrayControl.INSTANCE.showMessage(s);
 					});
 					break;
 				case "grass control player previous":
-					executeCommand(() -> {
+					// false
+
+					// true (bez hudby)
+					// -2.71929344E8 až -4.02070592E8
+					// true (s hudbou)
+					// -2.97899136E8 až -4.76348384E8
+					executeCommand(s, -2.71929344E8, -4.76348384E8, score, () -> {
 						VLCControl.INSTANCE.sendCommand(VLCCommand.NEXT);
 						TrayControl.INSTANCE.showMessage(s);
 					});
 					break;
 				case "grass control player stop":
-					executeCommand(() -> {
+					// false
+
+					// true (bez hudby)
+					// -2.45552176E8 až -2.9530528E8
+					// true (s hudbou)
+					// -2.31685504E8 až -3.81001824E8
+					executeCommand(s, -2.31685504E8, -3.81001824E8, score, () -> {
 						VLCControl.INSTANCE.sendCommand(VLCCommand.PAUSE);
 						TrayControl.INSTANCE.showMessage(s);
 					});
 					break;
 				case "grass control player play":
-					executeCommand(() -> {
+					// false
+
+					// true (bez hudby)
+					// -2.6881104E8 až -3.26824352E8
+					// true (s hudbou)
+					// -2.76270016E8 až -3.67315744E8
+					executeCommand(s, -2.6881104E8, -3.67315744E8, score, () -> {
 						VLCControl.INSTANCE.sendCommand(VLCCommand.PLAY);
 						TrayControl.INSTANCE.showMessage(s);
 					});
 					break;
 				case "grass control open hardware":
-					executeCommand(() -> {
+					// false
+					// -5.08478624E8
+
+					// true (bez hudby)
+					// -2.50869712E8 až -2.91747104E8
+					// true (s hudbou)
+					// -2.49946336E8 až -3.6449936E8
+					executeCommand(s, -2.49946336E8, -3.6449936E8, score, () -> {
 						CmdControl.INSTANCE.openChrome("https://www.gattserver.cz/hw");
 						TrayControl.INSTANCE.showMessage(s);
 					});
 					break;
 				case "grass control open grass":
-					executeCommand(() -> {
+					// false
+					// -7.1960922E8
+
+					// true (bez hudby)
+					// -2.51387168E8 až -3.76090496E8
+					// true (s hudbou)
+					// -2.51323984E8 až -3.85843776E8
+					executeCommand(s, -2.51323984E8, -3.76090496E8, score, () -> {
 						CmdControl.INSTANCE.openChrome("https://www.gattserver.cz");
-						TrayControl.INSTANCE.showMessage(s);
 					});
 					break;
 				case "grass control open nexus":
-					executeCommand(() -> {
+					// false
+
+					// true (bez hudby)
+					// -2.59455376E8 až -4.09875456E8
+					// true (s hudbou)
+					// -2.87446784E8 až -3.9382896E8
+					executeCommand(s, -2.59455376E8, -4.09875456E8, score, () -> {
 						CmdControl.INSTANCE.openChrome("https://www.gattserver.cz:8843");
 						TrayControl.INSTANCE.showMessage(s);
 					});
@@ -179,14 +171,17 @@ public enum SpeechControl {
 		recognizer.stopRecognition();
 	}
 
-	private void executeCommand(Command command) {
+	private void executeCommand(String text, double fromScore, double toScore, Float score, Command command) {
 		if (!enabled) {
 			String msg = "Speech recognition is disabled";
 			TrayControl.INSTANCE.showMessage(msg);
 			logger.info(msg);
 			return;
 		}
-		command.execute();
+		if (score <= fromScore && score >= toScore) {
+			TrayControl.INSTANCE.showMessage(text + " (score " + score + ")");
+			command.execute();
+		}
 	}
 
 	public void setEnabled(boolean enabled) {
