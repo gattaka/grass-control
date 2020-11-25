@@ -1,9 +1,8 @@
 #JSGF V1.0;
 
 grammar all;
-public <commands> = grass control (open <targets> | <vlc>);
+public <commands> = grass control (open <targets> | player <vlc-commands>);
 <targets> = (grass | nexus | hardware | articles);
-<vlc> = player <vlc-commands>;
 <vlc-commands> = (next | previous | stop | play);
 
 <misc-grass> = gross | floss | pass | mass;

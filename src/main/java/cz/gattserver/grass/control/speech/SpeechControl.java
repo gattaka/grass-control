@@ -12,7 +12,6 @@ import cz.gattserver.grass.control.vlc.VLCControl;
 import edu.cmu.sphinx.api.Configuration;
 import edu.cmu.sphinx.api.LiveSpeechRecognizer;
 import edu.cmu.sphinx.api.SpeechResult;
-import edu.cmu.sphinx.decoder.search.AlternateHypothesisManager;
 import edu.cmu.sphinx.decoder.search.Token;
 
 public enum SpeechControl {
@@ -69,8 +68,6 @@ public enum SpeechControl {
 				String s = result.getHypothesis();
 				if ("<unk>".equals(s) || "".equals(s))
 					continue;
-				// prázdné
-				// System.out.println(result.getResult().getFrameStatistics());
 				Token bestToken = result.getResult().getBestFinalToken();
 				Float score = bestToken == null ? null : bestToken.getScore();
 
@@ -78,92 +75,45 @@ public enum SpeechControl {
 				// zadávání, tím lepší skore)
 				logger.info("You said: '" + s + "' (score " + score + ")");
 
+				// Ani přes skore není možné odchytit správně (obrovské množství
+				// false-positive, které svým rozsahem výskytu přesahují
+				// true-positve)
+				// v l c next
+				// v l c previous
+				// v l c stop
+				// v l c play
+
 				switch (s) {
 				case "grass control player next":
-					// false
-					// -2.40568032E8
-
-					// true (bez hudby)
-					// -2.75173376E8 až -3.66884512E8
-					// true (s hudbou)
-					// -2.54164672E8 až -3.53690176E8
-					executeCommand(s, -2.54164672E8, -3.66884512E8, score, () -> {
-						VLCControl.INSTANCE.sendCommand(VLCCommand.NEXT);
-						TrayControl.INSTANCE.showMessage(s);
-					});
+					// false -2.40568032E8
+					executeCommand(s, -2.4E8, -5.11E8, score, () -> VLCControl.INSTANCE.sendCommand(VLCCommand.NEXT));
 					break;
 				case "grass control player previous":
 					// false
-
-					// true (bez hudby)
-					// -2.71929344E8 až -4.02070592E8
-					// true (s hudbou)
-					// -2.97899136E8 až -4.76348384E8
-					executeCommand(s, -2.71929344E8, -4.76348384E8, score, () -> {
-						VLCControl.INSTANCE.sendCommand(VLCCommand.NEXT);
-						TrayControl.INSTANCE.showMessage(s);
-					});
+					executeCommand(s, -2.71929344E8, -4.76348384E8, score,
+							() -> VLCControl.INSTANCE.sendCommand(VLCCommand.NEXT));
 					break;
 				case "grass control player stop":
-					// false
-
-					// true (bez hudby)
-					// -2.45552176E8 až -2.9530528E8
-					// true (s hudbou)
-					// -2.31685504E8 až -3.81001824E8
-					executeCommand(s, -2.31685504E8, -3.81001824E8, score, () -> {
-						VLCControl.INSTANCE.sendCommand(VLCCommand.PAUSE);
-						TrayControl.INSTANCE.showMessage(s);
-					});
+					executeCommand(s, -2.3E8, -4.1E8, score, () -> VLCControl.INSTANCE.sendCommand(VLCCommand.PAUSE));
 					break;
 				case "grass control player play":
-					// false
-
-					// true (bez hudby)
-					// -2.6881104E8 až -3.26824352E8
-					// true (s hudbou)
-					// -2.76270016E8 až -3.67315744E8
-					executeCommand(s, -2.6881104E8, -3.67315744E8, score, () -> {
-						VLCControl.INSTANCE.sendCommand(VLCCommand.PLAY);
-						TrayControl.INSTANCE.showMessage(s);
-					});
+					executeCommand(s, -2.4E8, -3.67315744E8, score,
+							() -> VLCControl.INSTANCE.sendCommand(VLCCommand.PLAY));
 					break;
 				case "grass control open hardware":
-					// false
-					// -5.08478624E8
-
-					// true (bez hudby)
-					// -2.50869712E8 až -2.91747104E8
-					// true (s hudbou)
-					// -2.49946336E8 až -3.6449936E8
-					executeCommand(s, -2.49946336E8, -3.6449936E8, score, () -> {
-						CmdControl.INSTANCE.openChrome("https://www.gattserver.cz/hw");
-						TrayControl.INSTANCE.showMessage(s);
-					});
+					// false -3.29825952E8 až -5.08478624E8
+					executeCommand(s, -2.4E8, -3.29E8, score,
+							() -> CmdControl.INSTANCE.openChrome("https://www.gattserver.cz/hw"));
 					break;
 				case "grass control open grass":
-					// false
-					// -7.1960922E8
-
-					// true (bez hudby)
-					// -2.51387168E8 až -3.76090496E8
-					// true (s hudbou)
-					// -2.51323984E8 až -3.85843776E8
-					executeCommand(s, -2.51323984E8, -3.76090496E8, score, () -> {
-						CmdControl.INSTANCE.openChrome("https://www.gattserver.cz");
-					});
+					// false -3.01723776E8 až -7.1960922E8
+					executeCommand(s, -2.96E8, -3.0E8, score,
+							() -> CmdControl.INSTANCE.openChrome("https://www.gattserver.cz"));
 					break;
 				case "grass control open nexus":
 					// false
-
-					// true (bez hudby)
-					// -2.59455376E8 až -4.09875456E8
-					// true (s hudbou)
-					// -2.87446784E8 až -3.9382896E8
-					executeCommand(s, -2.59455376E8, -4.09875456E8, score, () -> {
-						CmdControl.INSTANCE.openChrome("https://www.gattserver.cz:8843");
-						TrayControl.INSTANCE.showMessage(s);
-					});
+					executeCommand(s, -2.59455376E8, -4.09875456E8, score,
+							() -> CmdControl.INSTANCE.openChrome("https://www.gattserver.cz:8843"));
 					break;
 				}
 			}
@@ -180,7 +130,10 @@ public enum SpeechControl {
 		}
 		if (score <= fromScore && score >= toScore) {
 			TrayControl.INSTANCE.showMessage(text + " (score " + score + ")");
+			logger.info("Score in range");
 			command.execute();
+		} else {
+			logger.info("Score out of range");
 		}
 	}
 
