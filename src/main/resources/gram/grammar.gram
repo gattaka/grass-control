@@ -1,10 +1,20 @@
 #JSGF V1.0;
 
 grammar all;
-public <commands> = grass control (open <targets>);
-<targets> = (grass | nexus | hardware | articles | calculator | you tube);
-
-public <vlc> = v l c player <vlc-commands>;
+public <commands> = grass control (open <targets> | <vlc>);
+<targets> = (grass | nexus | hardware | articles);
+<vlc> = player <vlc-commands>;
 <vlc-commands> = (next | previous | stop | play);
 
-<misc> = gross | pay | payer;
+<misc-grass> = gross | floss | pass | mass;
+<misc-control> = fall | stall | call;
+<misc-open> = oven;
+<misc-nexus> = us;
+<misc-hardware> = spare;
+<misc-articles> = miss;
+
+<misc-player> = payer | prayer;
+<misc-play> = pay | stay | way | may | day;
+<misc-next> = sex | flex; 
+<misc-previous> = hideous;
+<misc-stop> = gross floss | pass; 
