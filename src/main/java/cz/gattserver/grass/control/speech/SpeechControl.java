@@ -118,9 +118,12 @@ public enum SpeechControl {
 					executeCommand(s, -1.50E8, -5.00E8, score, () -> VLCControl.sendCommand(VLCCommand.PAUSE));
 					break;
 				case PLAYER_PLAY:
-					executeCommand(s, -1.40E8, -5.00E8, score, () -> VLCControl.sendCommand(VLCCommand.PLAY));
+					// false -1.40
+					// true -1.51, -1.76
+					executeCommand(s, -1.56E8, -5.00E8, score, () -> VLCControl.sendCommand(VLCCommand.PLAY));
 					break;
 				case PLAYER_VOLUME_UP:
+					// false -1.98
 					executeCommand(s, -1.90E8, -3.20E8, score, () -> VLCControl.sendCommand(VLCCommand.VOLUP));
 					break;
 				case PLAYER_VOLUME_DOWN:
