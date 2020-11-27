@@ -5,15 +5,15 @@ public <commands> = grass control (open <targets> | <vlc-commands>);
 <targets> = (grass | nexus | hardware | articles);
 public <vlc-commands> = player (next | previous | stop | play );
 
-<misc-grass> = gross | floss | pass | mass;
-<misc-control> = fall | stall | call;
-<misc-open> = oven;
-<misc-nexus> = us;
-<misc-hardware> = spare;
-<misc-articles> = miss;
+public <misc-grass> = gross | floss | pass | mass;
+public <misc-control> = fall | stall | call;
+public <misc-open> = oven;
+public <misc-nexus> = us;
+public <misc-hardware> = spare;
+public <misc-articles> = miss;
 
-<misc-player> = payer | prayer;
-<misc-play> = pay | stay | way | may | day;
-<misc-next> = sex | flex; 
-<misc-previous> = hideous;
-<misc-stop> = top | flop | crop | plot; 
+public <misc-player> = payer | prayer;
+public <misc-play> = pay | stay | way | may | day;
+public <misc-next> = sex | flex; 
+public <misc-previous> = hideous;
+public <misc-stop> = top | flop | crop | plot; 

@@ -8,6 +8,9 @@ import org.apache.commons.net.telnet.TelnetClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import cz.gattserver.grass.control.ui.MessageLevel;
+import cz.gattserver.grass.control.ui.TrayControl;
+
 /**
  * Exposes control of VLC media player (videolan.org) from java. VLC must be set
  * up to open a telnet control on localhost:4444.
@@ -70,8 +73,9 @@ class VLCClient extends TelnetClient implements Runnable, TelnetNotificationHand
 			});
 			sendString(VLC_PASS);
 		} catch (IOException e) {
-			logger.warn("Couldn't connect to VLC", e);
-			throw new IOException(e);
+			String msg = "Couldn't connect to VLC";
+			logger.warn(msg, e);
+			TrayControl.INSTANCE.showMessage(msg + " " + e.getMessage(), MessageLevel.ERROR);
 		}
 	}
 

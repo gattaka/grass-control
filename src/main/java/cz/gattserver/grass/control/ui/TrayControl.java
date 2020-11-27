@@ -1,4 +1,4 @@
-package cz.gattserver.grass.control;
+package cz.gattserver.grass.control.ui;
 
 import java.awt.AWTException;
 import java.awt.CheckboxMenuItem;
@@ -6,7 +6,6 @@ import java.awt.MenuItem;
 import java.awt.PopupMenu;
 import java.awt.SystemTray;
 import java.awt.TrayIcon;
-import java.awt.TrayIcon.MessageType;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
@@ -16,6 +15,7 @@ import javax.imageio.ImageIO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import cz.gattserver.grass.control.Main;
 import cz.gattserver.grass.control.speech.SpeechControl;
 
 public enum TrayControl {
@@ -63,7 +63,11 @@ public enum TrayControl {
 	}
 
 	public void showMessage(String message) {
-		trayIcon.displayMessage("Speech recognition", message, MessageType.NONE);
+		new MessageWindow(message, MessageLevel.INFO);
+	}
+
+	public void showMessage(String message, MessageLevel level) {
+		new MessageWindow(message, level);
 	}
 
 }
