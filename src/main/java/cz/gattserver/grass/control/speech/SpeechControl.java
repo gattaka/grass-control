@@ -26,17 +26,24 @@ public enum SpeechControl {
 	private static final String GRAMMAR_PATH = "resource:/gram/";
 	private static final String LANGUAGE_MODEL = "resource:/edu/cmu/sphinx/models/en-us/en-us.lm.bin";
 
-	private static final String PLAYER_NEXT = "grass control player next";
-	private static final String PLAYER_NEXT_SHORTCUT = "player next";
-	private static final String PLAYER_PREVIOUS = "grass control player previous";
-	private static final String PLAYER_PREVIOUS_SHORTCUT = "player previous";
-	private static final String PLAYER_STOP = "grass control player stop";
-	private static final String PLAYER_STOP_SHORTCUT = "player stop";
-	private static final String PLAYER_PLAY = "grass control player play";
-	private static final String PLAYER_PLAY_SHORTCUT = "player play";
-	private static final String HW = "grass control open hardware";
-	private static final String GRASS = "grass control open grass";
-	private static final String NEXUS = "grass control open nexus";
+	private static final String GRASS_PLAYER_NEXT = "grass control player next";
+	private static final String GRASS_PLAYER_PREVIOUS = "grass control player previous";
+	private static final String GRASS_PLAYER_STOP = "grass control player stop";
+	private static final String GRASS_PLAYER_PLAY = "grass control player play";
+
+	private static final String PLAYER_NEXT = "player next";
+	private static final String PLAYER_PREVIOUS = "player previous";
+	private static final String PLAYER_STOP = "player stop";
+	private static final String PLAYER_PLAY = "player play";
+	private static final String PLAYER_VOLUME_UP = "player volume up";
+	private static final String PLAYER_VOLUME_DOWN = "player volume down";
+	private static final String PLAYER_RANDOM_ON = "player random on";
+	private static final String PLAYER_RANDOM_OFF = "player random off";
+	private static final String PLAYER_STATUS = "player status";
+
+	private static final String OPEN_HW = "grass control open hardware";
+	private static final String OPEN_GRASS = "grass control open grass";
+	private static final String OPEN_NEXUS = "grass control open nexus";
 
 	private volatile boolean running = false;
 	private volatile boolean enabled = true;
@@ -88,42 +95,58 @@ public enum SpeechControl {
 				logger.info("You said: '" + s + "' (score " + score + ")");
 
 				switch (s) {
-				case PLAYER_NEXT:
-					executeCommand(s, -2.4E8, -5.11E8, score, () -> VLCControl.INSTANCE.sendCommand(VLCCommand.NEXT));
+				case GRASS_PLAYER_NEXT:
+					executeCommand(s, -2.40E8, -5.11E8, score, () -> VLCControl.sendCommand(VLCCommand.NEXT));
 					break;
-				case PLAYER_NEXT_SHORTCUT:
-					executeCommand(s, -1.40E8, -3.1E8, score, () -> VLCControl.INSTANCE.sendCommand(VLCCommand.NEXT));
+				case GRASS_PLAYER_PREVIOUS:
+					executeCommand(s, -2.35E8, -4.76E8, score, () -> VLCControl.sendCommand(VLCCommand.NEXT));
+					break;
+				case GRASS_PLAYER_STOP:
+					executeCommand(s, -2.30E8, -4.40E8, score, () -> VLCControl.sendCommand(VLCCommand.PAUSE));
+					break;
+				case GRASS_PLAYER_PLAY:
+					executeCommand(s, -2.40E8, -4.10E8, score, () -> VLCControl.sendCommand(VLCCommand.PLAY));
+					break;
+
+				case PLAYER_NEXT:
+					executeCommand(s, -1.40E8, -6.76E8, score, () -> VLCControl.sendCommand(VLCCommand.NEXT));
 					break;
 				case PLAYER_PREVIOUS:
-					executeCommand(s, -2.35E8, -4.76348384E8, score,
-							() -> VLCControl.INSTANCE.sendCommand(VLCCommand.NEXT));
-					break;
-				case PLAYER_PREVIOUS_SHORTCUT:
-					executeCommand(s, -1.5E8, -3.1E8, score, () -> VLCControl.INSTANCE.sendCommand(VLCCommand.NEXT));
+					executeCommand(s, -1.50E8, -3.10E8, score, () -> VLCControl.sendCommand(VLCCommand.NEXT));
 					break;
 				case PLAYER_STOP:
-					executeCommand(s, -2.3E8, -4.4E8, score, () -> VLCControl.INSTANCE.sendCommand(VLCCommand.PAUSE));
-					break;
-				case PLAYER_STOP_SHORTCUT:
-					executeCommand(s, -1.3E8, -5.0E8, score, () -> VLCControl.INSTANCE.sendCommand(VLCCommand.PAUSE));
+					executeCommand(s, -1.50E8, -5.00E8, score, () -> VLCControl.sendCommand(VLCCommand.PAUSE));
 					break;
 				case PLAYER_PLAY:
-					executeCommand(s, -2.4E8, -4.1E8, score, () -> VLCControl.INSTANCE.sendCommand(VLCCommand.PLAY));
+					executeCommand(s, -1.40E8, -5.00E8, score, () -> VLCControl.sendCommand(VLCCommand.PLAY));
 					break;
-				case PLAYER_PLAY_SHORTCUT:
-					executeCommand(s, -1.4E8, -5.0E8, score, () -> VLCControl.INSTANCE.sendCommand(VLCCommand.PLAY));
+				case PLAYER_VOLUME_UP:
+					executeCommand(s, -1.90E8, -3.20E8, score, () -> VLCControl.sendCommand(VLCCommand.VOLUP));
 					break;
-				case HW:
-					executeCommand(s, -2.4E8, -4.13E8, score,
-							() -> CmdControl.INSTANCE.openChrome("https://www.gattserver.cz/hw"));
+				case PLAYER_VOLUME_DOWN:
+					executeCommand(s, -1.36E8, -3.30E8, score, () -> VLCControl.sendCommand(VLCCommand.VOLDOWN));
 					break;
-				case GRASS:
+				case PLAYER_RANDOM_ON:
+					executeCommand(s, -1.36E8, -3.30E8, score, () -> VLCControl.sendCommand(VLCCommand.RANDOM_ON));
+					break;
+				case PLAYER_RANDOM_OFF:
+					executeCommand(s, -1.36E8, -3.46E8, score, () -> VLCControl.sendCommand(VLCCommand.RANDOM_OFF));
+					break;
+				case PLAYER_STATUS:
+					executeCommand(s, -1.36E8, -4.99E8, score, () -> VLCControl.sendCommand(VLCCommand.STATUS));
+					break;
+
+				case OPEN_HW:
+					executeCommand(s, -2.40E8, -4.13E8, score,
+							() -> CmdControl.openChrome("https://www.gattserver.cz/hw"));
+					break;
+				case OPEN_GRASS:
 					executeCommand(s, -2.40E8, -5.37E8, score,
-							() -> CmdControl.INSTANCE.openChrome("https://www.gattserver.cz"));
+							() -> CmdControl.openChrome("https://www.gattserver.cz"));
 					break;
-				case NEXUS:
-					executeCommand(s, -2.59455376E8, -4.56E8, score,
-							() -> CmdControl.INSTANCE.openChrome("https://www.gattserver.cz:8843"));
+				case OPEN_NEXUS:
+					executeCommand(s, -2.59E8, -4.56E8, score,
+							() -> CmdControl.openChrome("https://www.gattserver.cz:8843"));
 					break;
 				}
 			}
@@ -134,17 +157,17 @@ public enum SpeechControl {
 	private void executeCommand(String text, double fromScore, double toScore, Float score, Command command) {
 		if (!enabled) {
 			String msg = "Speech recognition is disabled";
-			TrayControl.INSTANCE.showMessage(msg);
+			TrayControl.showMessage(msg);
 			logger.info(msg);
 		} else if (score <= fromScore && score >= toScore) {
-			TrayControl.INSTANCE.showMessage(text + " (score " + score + ")");
+			TrayControl.showMessage(text + " (score " + score + ")");
 			logger.info("Score in range");
 			try {
 				command.execute();
 			} catch (Exception e) {
 				String msg = "Command failed";
 				logger.info(msg, e);
-				TrayControl.INSTANCE.showMessage(msg, MessageLevel.ERROR);
+				TrayControl.showMessage(msg, MessageLevel.ERROR);
 			}
 		} else {
 			logger.info("Score out of range");

@@ -3,6 +3,7 @@ package cz.gattserver.grass.control.vlc;
 import java.beans.PropertyChangeSupport;
 import java.io.*;
 import java.io.IOException;
+
 import org.apache.commons.net.telnet.*;
 import org.apache.commons.net.telnet.TelnetClient;
 import org.slf4j.Logger;
@@ -75,7 +76,7 @@ class VLCClient extends TelnetClient implements Runnable, TelnetNotificationHand
 		} catch (IOException e) {
 			String msg = "Couldn't connect to VLC";
 			logger.warn(msg, e);
-			TrayControl.INSTANCE.showMessage(msg + " " + e.getMessage(), MessageLevel.ERROR);
+			TrayControl.showMessage(msg + " " + e.getMessage(), MessageLevel.ERROR);
 		}
 	}
 
@@ -184,12 +185,13 @@ class VLCClient extends TelnetClient implements Runnable, TelnetNotificationHand
 				ret_read = instr.read(buff);
 				if (ret_read > 0) {
 					String s = new String(buff, 0, ret_read);
-					logger.info(s);
+					logger.info("VLC Response: " + s);
 					// listener on static instance that actually is connected
 					// gets the message
 					staticInstance.getSupport().firePropertyChange(CLIENT_MESSAGE, null, s);
 				}
 			} while (ret_read >= 0);
+			logger.info("Reader ending - no more to read");
 		} catch (Exception e) {
 			logger.warn("Reader ending - Exception while reading socket", e);
 		}

@@ -11,7 +11,7 @@ public enum CmdControl {
 
 	private static final Logger logger = LoggerFactory.getLogger(CmdControl.class);
 
-	public void openChrome(String page) {
+	public static void openChrome(String page) {
 		String command = "start chrome " + page;
 		ProcessBuilder pb = new ProcessBuilder("cmd.exe", "/c", command);
 		try {

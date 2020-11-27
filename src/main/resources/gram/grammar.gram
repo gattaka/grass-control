@@ -3,7 +3,7 @@
 grammar all;
 public <commands> = grass control (open <targets> | <vlc-commands>);
 <targets> = (grass | nexus | hardware | articles);
-public <vlc-commands> = player (next | previous | stop | play );
+public <vlc-commands> = player (next | previous | stop | play | volume (up | down) | random (on | off) | status);
 
 public <misc-grass> = gross | floss | pass | mass;
 public <misc-control> = fall | stall | call;
@@ -13,7 +13,8 @@ public <misc-hardware> = spare;
 public <misc-articles> = miss;
 
 public <misc-player> = payer | prayer;
-public <misc-play> = pay | stay | way | may | day;
-public <misc-next> = sex | flex; 
+public <misc-play> = pay | stay | way | may | day | lay;
+public <misc-next> = sex | flex;
+public <misc-random> = kingdom | demon;
 public <misc-previous> = hideous;
 public <misc-stop> = top | flop | crop | plot; 

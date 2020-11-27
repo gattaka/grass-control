@@ -108,19 +108,19 @@ public enum BluetoothControl {
 		return null;
 	}
 
-	private void sendVLCCommand(int signal) throws IOException {
+	private void sendVLCCommand(int signal) {
 		switch (signal) {
 		case 0x81:
-			VLCControl.INSTANCE.sendCommand(VLCCommand.NEXT);
+			VLCControl.sendCommand(VLCCommand.NEXT);
 			break;
 		case 0x82:
-			VLCControl.INSTANCE.sendCommand(VLCCommand.PREV);
+			VLCControl.sendCommand(VLCCommand.PREV);
 			break;
 		case 0x83:
-			VLCControl.INSTANCE.sendCommand(VLCCommand.VOLUP);
+			VLCControl.sendCommand(VLCCommand.VOLUP);
 			break;
 		case 0x84:
-			VLCControl.INSTANCE.sendCommand(VLCCommand.VOLDOWN);
+			VLCControl.sendCommand(VLCCommand.VOLDOWN);
 			break;
 		}
 	}

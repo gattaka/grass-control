@@ -62,11 +62,11 @@ public enum TrayControl {
 		}
 	}
 
-	public void showMessage(String message) {
+	public static void showMessage(String message) {
 		new MessageWindow(message, MessageLevel.INFO);
 	}
 
-	public void showMessage(String message, MessageLevel level) {
+	public static void showMessage(String message, MessageLevel level) {
 		new MessageWindow(message, level);
 	}
 

@@ -11,9 +11,9 @@ public enum VLCControl {
 
 	private static final Logger logger = LoggerFactory.getLogger(VLCControl.class);
 
-	private VLCClient vlc;
+	private static VLCClient vlc;
 
-	public void sendCommand(VLCCommand command) {
+	public static void sendCommand(VLCCommand command) {
 		try {
 			try {
 				if (vlc == null) {
@@ -24,13 +24,14 @@ public enum VLCControl {
 			} catch (IOException e) {
 				// nelze se poslat signál -- příkaz je zahozen
 				tryToCleanVLCConnection();
+				logger.error("SendCommand failed", e);
 			}
 		} catch (IOException e) {
-			logger.error("SendCommand failed", e);
+			logger.error("tryToCleanVLCConnection failed", e);
 		}
 	}
 
-	private void tryToCleanVLCConnection() throws IOException {
+	private static void tryToCleanVLCConnection() throws IOException {
 		if (vlc != null)
 			vlc.disconnect();
 		vlc = null;

@@ -80,17 +80,19 @@ public class MessageWindow extends JWindow {
 		logger.trace("MessageWindow '" + message + "' creation started");
 
 		setAlwaysOnTop(true);
-		// win.setOpacity(0.8f);
 		setBackground(new Color(toPerc(244), toPerc(241), toPerc(230)));
+		// setBackground(new Color(toPerc(216), toPerc(205), toPerc(166)));
 
 		JPanel borderPane = new JPanel();
 		borderPane.setBorder(new MatteBorder(1, 1, 1, 1, new Color(toPerc(179), toPerc(179), toPerc(179))));
+		borderPane.setBackground(new Color(0, 0, 0, 0));
 		add(borderPane);
 
 		JPanel contentPane = new JPanel();
 		int marginSize = 2;
 		contentPane.setBorder(new EmptyBorder(marginSize, marginSize, marginSize, marginSize));
 		contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.PAGE_AXIS));
+		contentPane.setBackground(new Color(0, 0, 0, 0));
 		borderPane.add(contentPane);
 
 		ImageIcon headerIcon = new ImageIcon(loadImage("favicon.png"));

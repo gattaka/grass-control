@@ -35,12 +35,27 @@ public enum VLCCommand {
 	/**
 	 * Volume down
 	 */
-	VOLDOWN("voldown 1"),
+	VOLDOWN("voldown 2"),
 
 	/**
 	 * Volume up
 	 */
-	VOLUP("volup 1");
+	VOLUP("volup 2"),
+
+	/**
+	 * Random on
+	 */
+	RANDOM_ON("random on"),
+
+	/**
+	 * Random off
+	 */
+	RANDOM_OFF("random off"),
+
+	/**
+	 * Status
+	 */
+	STATUS("status");
 
 	private String signalName;
 

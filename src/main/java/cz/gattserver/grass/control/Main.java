@@ -13,7 +13,7 @@ public class Main {
 		BluetoothControl.INSTANCE.start();
 		SpeechControl.INSTANCE.start();
 
-		TrayControl.INSTANCE.showMessage("Grass control started");
+		TrayControl.showMessage("Grass control started");
 	}
 
 }
