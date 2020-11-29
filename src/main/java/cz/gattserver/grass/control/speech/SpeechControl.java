@@ -109,30 +109,36 @@ public enum SpeechControl {
 					break;
 
 				case PLAYER_NEXT:
+					// true -1.71
 					executeCommand(s, -1.40E8, -6.76E8, score, () -> VLCControl.sendCommand(VLCCommand.NEXT));
 					break;
 				case PLAYER_PREVIOUS:
 					executeCommand(s, -1.50E8, -3.10E8, score, () -> VLCControl.sendCommand(VLCCommand.NEXT));
 					break;
 				case PLAYER_STOP:
-					executeCommand(s, -1.50E8, -5.00E8, score, () -> VLCControl.sendCommand(VLCCommand.PAUSE));
+					// false -1.98
+					// true -2.33, -3.28
+					executeCommand(s, -1.99E8, -5.00E8, score, () -> VLCControl.sendCommand(VLCCommand.PAUSE));
 					break;
 				case PLAYER_PLAY:
-					// false -1.40
-					// true -1.51, -1.76
-					executeCommand(s, -1.56E8, -5.00E8, score, () -> VLCControl.sendCommand(VLCCommand.PLAY));
+					// false -1.40, -3.25
+					// true -1.51, -1.76, -1.85
+					executeCommand(s, -1.56E8, -3.25E8, score, () -> VLCControl.sendCommand(VLCCommand.PLAY));
 					break;
 				case PLAYER_VOLUME_UP:
 					// false -1.98
+					// true -2.21
 					executeCommand(s, -1.90E8, -3.20E8, score, () -> VLCControl.sendCommand(VLCCommand.VOLUP));
 					break;
 				case PLAYER_VOLUME_DOWN:
+					// true -2.75
 					executeCommand(s, -1.36E8, -3.30E8, score, () -> VLCControl.sendCommand(VLCCommand.VOLDOWN));
 					break;
 				case PLAYER_RANDOM_ON:
 					executeCommand(s, -1.36E8, -3.30E8, score, () -> VLCControl.sendCommand(VLCCommand.RANDOM_ON));
 					break;
 				case PLAYER_RANDOM_OFF:
+					// true -2.42
 					executeCommand(s, -1.36E8, -3.46E8, score, () -> VLCControl.sendCommand(VLCCommand.RANDOM_OFF));
 					break;
 				case PLAYER_STATUS:
@@ -144,6 +150,7 @@ public enum SpeechControl {
 							() -> CmdControl.openChrome("https://www.gattserver.cz/hw"));
 					break;
 				case OPEN_GRASS:
+					// true -2.22, -4.92
 					executeCommand(s, -2.40E8, -5.37E8, score,
 							() -> CmdControl.openChrome("https://www.gattserver.cz"));
 					break;
