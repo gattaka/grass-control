@@ -99,7 +99,7 @@ public enum SpeechControl {
 					executeCommand(s, -2.40E8, -5.11E8, score, () -> VLCControl.sendCommand(VLCCommand.NEXT));
 					break;
 				case GRASS_PLAYER_PREVIOUS:
-					executeCommand(s, -2.35E8, -4.76E8, score, () -> VLCControl.sendCommand(VLCCommand.NEXT));
+					executeCommand(s, -2.35E8, -4.76E8, score, () -> VLCControl.sendCommand(VLCCommand.PREV));
 					break;
 				case GRASS_PLAYER_STOP:
 					executeCommand(s, -2.30E8, -4.40E8, score, () -> VLCControl.sendCommand(VLCCommand.PAUSE));
@@ -109,17 +109,18 @@ public enum SpeechControl {
 					break;
 
 				case PLAYER_NEXT:
-					// false 
-					// true 
-					executeCommand(s, -1.40E8, -6.76E8, score, () -> VLCControl.sendCommand(VLCCommand.NEXT));
+					// false -1.46, -2.32
+					// true -1.32, -1.43, -1.63, -1.70, -1.77, -1.85, -1.95
+					executeCommand(s, -1.40E8, -2.32E8, score, () -> VLCControl.sendCommand(VLCCommand.NEXT));
+					executeCommand(s, -2.33E8, -6.76E8, score, () -> VLCControl.sendCommand(VLCCommand.NEXT));
 					break;
 				case PLAYER_PREVIOUS:
-					executeCommand(s, -1.50E8, -3.50E8, score, () -> VLCControl.sendCommand(VLCCommand.NEXT));
+					executeCommand(s, -1.50E8, -3.50E8, score, () -> VLCControl.sendCommand(VLCCommand.PREV));
 					break;
 				case PLAYER_STOP:
-					// false 
-					// true 
-					executeCommand(s, -1.67E8, -5.00E8, score, () -> VLCControl.sendCommand(VLCCommand.PAUSE));
+					// false -1.76, -4.75
+					// true -1.41, -1.68, -1.76
+					executeCommand(s, -1.41E8, -4.75E8, score, () -> VLCControl.sendCommand(VLCCommand.PAUSE));
 					break;
 				case PLAYER_PLAY:
 					// false
@@ -136,6 +137,8 @@ public enum SpeechControl {
 					executeCommand(s, -1.36E8, -3.30E8, score, () -> VLCControl.sendCommand(VLCCommand.VOLDOWN));
 					break;
 				case PLAYER_RANDOM_ON:
+					// false -2.36
+					// true -2.54, -2.95, 
 					executeCommand(s, -1.36E8, -3.30E8, score, () -> VLCControl.sendCommand(VLCCommand.RANDOM_ON));
 					break;
 				case PLAYER_RANDOM_OFF:
@@ -143,6 +146,7 @@ public enum SpeechControl {
 					executeCommand(s, -1.36E8, -3.46E8, score, () -> VLCControl.sendCommand(VLCCommand.RANDOM_OFF));
 					break;
 				case PLAYER_STATUS:
+					// false -2.06, -2.10
 					executeCommand(s, -1.36E8, -4.99E8, score, () -> VLCControl.sendCommand(VLCCommand.STATUS));
 					break;
 
