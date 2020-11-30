@@ -13,28 +13,37 @@ public enum VLCControl {
 
 	private static VLCClient vlc;
 
-	public static void sendCommand(VLCCommand command) {
+	private static void connect() {
 		try {
-			try {
-				if (vlc == null) {
-					vlc = new VLCClient();
-					vlc.connect();
-				}
-				vlc.sendCommand(command);
-			} catch (IOException e) {
-				// nelze se poslat signál -- příkaz je zahozen
-				tryToCleanVLCConnection();
-				logger.error("SendCommand failed", e);
-			}
+			vlc = new VLCClient();
+			vlc.connect();
 		} catch (IOException e) {
-			logger.error("tryToCleanVLCConnection failed", e);
+			throw new IllegalStateException("VLC connect failed", e);
 		}
 	}
 
-	private static void tryToCleanVLCConnection() throws IOException {
-		if (vlc != null)
-			vlc.disconnect();
-		vlc = null;
+	public static void sendCommand(VLCCommand command) {
+		if (vlc == null)
+			connect();
+		try {
+			vlc.sendCommand(command);
+		} catch (IOException e1) {
+			logger.error("SendCommand failed -- trying reconnect");
+			try {
+				vlc.disconnect();
+			} catch (IOException ee) {
+				// nevadí, disconnect nemusí projít, pokud je spojení úplně
+				// zrušené, je dobré to ale zkusit, aby nezůstalo viset
+			}
+			// zkus vytvořit nové spojení
+			connect();
+			try {
+				vlc.sendCommand(command);
+			} catch (IOException ee) {
+				// pokud ani s novým spojením příkaz opět nejde, vzdej to
+				throw new IllegalStateException("SendCommand failed (after reconnect)", ee);
+			}
+		}
 	}
 
 }

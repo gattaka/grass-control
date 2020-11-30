@@ -146,8 +146,10 @@ public enum SpeechControl {
 					executeCommand(s, -1.36E8, -3.46E8, score, () -> VLCControl.sendCommand(VLCCommand.RANDOM_OFF));
 					break;
 				case PLAYER_STATUS:
-					// false -2.06, -2.10
-					executeCommand(s, -1.36E8, -4.99E8, score, () -> VLCControl.sendCommand(VLCCommand.STATUS));
+					// false -2.06, -2.10, -3.05
+					// true -1.65, -1.81, -1.92, -3.74
+					executeCommand(s, -1.36E8, -2.06E8, score, () -> VLCControl.sendCommand(VLCCommand.STATUS));
+					executeCommand(s, -3.74E8, -5.00E8, score, () -> VLCControl.sendCommand(VLCCommand.STATUS));
 					break;
 
 				case OPEN_HW:
