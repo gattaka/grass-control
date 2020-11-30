@@ -232,4 +232,5 @@ class VLCClient extends TelnetClient implements Runnable, TelnetNotificationHand
 	public PropertyChangeSupport getSupport() {
 		return support;
 	}
+
 }

@@ -92,7 +92,7 @@ public enum SpeechControl {
 
 				// Vypadá to, že čím lepší frázování (oddělení slov při
 				// zadávání, tím lepší skore)
-				logger.info("You said: '" + s + "' (score " + score + ")");
+				// logger.info("You said: '" + s + "' (score " + score + ")");
 
 				switch (s) {
 				case GRASS_PLAYER_NEXT:
@@ -123,33 +123,47 @@ public enum SpeechControl {
 					executeCommand(s, -1.41E8, -4.75E8, score, () -> VLCControl.sendCommand(VLCCommand.PAUSE));
 					break;
 				case PLAYER_PLAY:
-					// false
-					// true 
-					executeCommand(s, -1.56E8, -3.25E8, score, () -> VLCControl.sendCommand(VLCCommand.PLAY));
+					// false -2.69
+					// true -1.48, -1.99, -1.98, -2.62, -3.16
+					executeCommand(s, -1.48E8, -3.17E8, score, () -> VLCControl.sendCommand(VLCCommand.PLAY));
 					break;
 				case PLAYER_VOLUME_UP:
-					// false 
-					// true 
-					executeCommand(s, -1.68E8, -3.20E8, score, () -> VLCControl.sendCommand(VLCCommand.VOLUP));
+					// false -1.59, -1.87
+					// true -2.94
+					executeCommand(s, -1.88E8, -3.20E8, score, () -> VLCControl.sendCommand(VLCCommand.VOLUP));
 					break;
 				case PLAYER_VOLUME_DOWN:
-					// true 
+					// true
 					executeCommand(s, -1.36E8, -3.30E8, score, () -> VLCControl.sendCommand(VLCCommand.VOLDOWN));
 					break;
 				case PLAYER_RANDOM_ON:
-					// false -2.36
-					// true -2.54, -2.95, 
-					executeCommand(s, -1.36E8, -3.30E8, score, () -> VLCControl.sendCommand(VLCCommand.RANDOM_ON));
+					// false -1.66, -2.36
+					// true -2.52, -2.54, -2.95,
+					executeCommand(s, -2.52E8, -3.30E8, score, () -> VLCControl.sendCommand(VLCCommand.RANDOM_ON));
 					break;
 				case PLAYER_RANDOM_OFF:
-					// true 
+					// true
 					executeCommand(s, -1.36E8, -3.46E8, score, () -> VLCControl.sendCommand(VLCCommand.RANDOM_OFF));
 					break;
 				case PLAYER_STATUS:
-					// false -2.06, -2.10, -3.05
-					// true -1.65, -1.81, -1.92, -3.74
-					executeCommand(s, -1.36E8, -2.06E8, score, () -> VLCControl.sendCommand(VLCCommand.STATUS));
-					executeCommand(s, -3.74E8, -5.00E8, score, () -> VLCControl.sendCommand(VLCCommand.STATUS));
+					// false
+					// true -1.69, -1.91, -2.18, -2.21, -3.10
+					Command cmd = () -> {
+						VLCControl.waitForResponse(str -> {
+							if (str.contains("Welcome, Master"))
+								return false;
+							String[] chunks = str.split("\n");
+							if (chunks.length != 3)
+								return false;
+							String[] pathChunks = chunks[0].split("/");
+							String song = pathChunks[pathChunks.length - 1];
+							song = song.substring(0, song.lastIndexOf(" )"));
+							TrayControl.showMessage(song);
+							return true;
+						});
+						VLCControl.sendCommand(VLCCommand.STATUS);
+					};
+					executeCommand(s, -1.60E8, -3.20E8, score, cmd);
 					break;
 
 				case OPEN_HW:
@@ -172,6 +186,7 @@ public enum SpeechControl {
 	}
 
 	private void executeCommand(String text, double fromScore, double toScore, Float score, Command command) {
+		logger.info("You said: '" + text + "' (score " + score + ")");
 		if (!enabled) {
 			String msg = "Speech recognition is disabled";
 			TrayControl.showMessage(msg);

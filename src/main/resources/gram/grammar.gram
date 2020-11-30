@@ -9,6 +9,7 @@ public <misc-player> = payer | prayer;
 public <misc-next> = sex | flex | text | test | eggs;
 public <misc-stop> = top | flop | crop; 
 public <misc-random> = kingdom | demon;
+public <misc-status> = wait us | paint us;
 
 /*
 public <misc-grass> = gross | floss | pass | mass;

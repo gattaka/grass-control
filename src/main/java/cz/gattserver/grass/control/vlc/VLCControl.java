@@ -1,6 +1,9 @@
 package cz.gattserver.grass.control.vlc;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.IOException;
+import java.util.function.Function;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,6 +47,30 @@ public enum VLCControl {
 				throw new IllegalStateException("SendCommand failed (after reconnect)", ee);
 			}
 		}
+	}
+
+	public static void waitForResponse(Function<String, Boolean> callback) {
+		if (vlc == null)
+			connect();
+		vlc.getSupport().addPropertyChangeListener(VLCClient.CLIENT_MESSAGE, new PropertyChangeListener() {
+
+			StringBuilder sb = new StringBuilder();
+
+			@Override
+			public void propertyChange(PropertyChangeEvent evt) {
+				String s = (String) evt.getNewValue();
+				sb.append(s);
+				String delimiter = "> ";
+				if (s.contains(delimiter)) {
+					String val = sb.toString();
+					if (callback.apply(val.substring(0, val.indexOf(delimiter)))) {
+						vlc.getSupport().removePropertyChangeListener(this);
+					} else {
+						sb = new StringBuilder();
+					}
+				}
+			}
+		});
 	}
 
 }
