@@ -30,16 +30,21 @@ public enum SpeechControl {
 	private static final String GRASS_PLAYER_PREVIOUS = "grass control player previous";
 	private static final String GRASS_PLAYER_STOP = "grass control player stop";
 	private static final String GRASS_PLAYER_PLAY = "grass control player play";
+	private static final String GRASS_PLAYER_VOLUME_UP = "grass control player volume up";
+	private static final String GRASS_PLAYER_VOLUME_DOWN = "grass control player volume down";
+	private static final String GRASS_PLAYER_SHUFFLE_ON = "grass control player shuffle on";
+	private static final String GRASS_PLAYER_SHUFFLE_OFF = "grass control player shuffle off";
+	private static final String GRASS_PLAYER_STATUS = "grass control player status";
 
 	private static final String PLAYER_NEXT = "player next";
 	private static final String PLAYER_PREVIOUS = "player previous";
-	private static final String PLAYER_STOP = "player stop";
-	private static final String PLAYER_PLAY = "player play";
-	private static final String PLAYER_VOLUME_UP = "player volume up";
-	private static final String PLAYER_VOLUME_DOWN = "player volume down";
-	private static final String PLAYER_RANDOM_ON = "player random on";
-	private static final String PLAYER_RANDOM_OFF = "player random off";
-	private static final String PLAYER_STATUS = "player status";
+	// private static final String PLAYER_STOP = "player stop";
+	// private static final String PLAYER_PLAY = "player play";
+	// private static final String PLAYER_VOLUME_UP = "player volume up";
+	// private static final String PLAYER_VOLUME_DOWN = "player volume down";
+	// private static final String PLAYER_RANDOM_ON = "player random on";
+	// private static final String PLAYER_RANDOM_OFF = "player random off";
+	// private static final String PLAYER_STATUS = "player status";
 
 	private static final String OPEN_HW = "grass control open hardware";
 	private static final String OPEN_GRASS = "grass control open grass";
@@ -68,6 +73,24 @@ public enum SpeechControl {
 		running = false;
 	}
 
+	private Command createStatusCommand() {
+		return () -> {
+			VLCControl.waitForResponse(str -> {
+				if (str.contains("Welcome, Master"))
+					return false;
+				String[] chunks = str.split("\n");
+				if (chunks.length != 3)
+					return false;
+				String[] pathChunks = chunks[0].split("/");
+				String song = pathChunks[pathChunks.length - 1];
+				song = song.substring(0, song.lastIndexOf(" )"));
+				TrayControl.showMessage(song);
+				return true;
+			});
+			VLCControl.sendCommand(VLCCommand.STATUS);
+		};
+	}
+
 	private void runControl() throws InterruptedException, IOException {
 		Configuration configuration = new Configuration();
 		configuration.setAcousticModelPath(ACOUSTIC_MODEL);
@@ -92,78 +115,48 @@ public enum SpeechControl {
 
 				// Vypadá to, že čím lepší frázování (oddělení slov při
 				// zadávání, tím lepší skore)
-				// logger.info("You said: '" + s + "' (score " + score + ")");
+				logger.info("You said: '" + s + "' (score " + score + ")");
 
 				switch (s) {
 				case GRASS_PLAYER_NEXT:
-					executeCommand(s, -2.40E8, -5.11E8, score, () -> VLCControl.sendCommand(VLCCommand.NEXT));
+					executeCommand(s, -1.00E8, -9.20E8, score, () -> VLCControl.sendCommand(VLCCommand.NEXT));
 					break;
 				case GRASS_PLAYER_PREVIOUS:
-					executeCommand(s, -2.35E8, -4.76E8, score, () -> VLCControl.sendCommand(VLCCommand.PREV));
+					executeCommand(s, -2.35E8, -9.10E8, score, () -> VLCControl.sendCommand(VLCCommand.PREV));
 					break;
+
 				case GRASS_PLAYER_STOP:
-					executeCommand(s, -2.30E8, -4.40E8, score, () -> VLCControl.sendCommand(VLCCommand.PAUSE));
+					executeCommand(s, -1.00E8, -8.70E8, score, () -> VLCControl.sendCommand(VLCCommand.PAUSE));
 					break;
 				case GRASS_PLAYER_PLAY:
-					executeCommand(s, -2.40E8, -4.10E8, score, () -> VLCControl.sendCommand(VLCCommand.PLAY));
+					executeCommand(s, -2.40E8, -7.00E8, score, () -> VLCControl.sendCommand(VLCCommand.PLAY));
+					break;
+
+				case GRASS_PLAYER_VOLUME_UP:
+					executeCommand(s, -1.88E8, -7.60E8, score, () -> VLCControl.sendCommand(VLCCommand.VOLUP));
+					break;
+				case GRASS_PLAYER_VOLUME_DOWN:
+					executeCommand(s, -1.36E8, -7.60E8, score, () -> VLCControl.sendCommand(VLCCommand.VOLDOWN));
+					break;
+
+				case GRASS_PLAYER_SHUFFLE_ON:
+					executeCommand(s, -2.52E8, -9.50E8, score, () -> VLCControl.sendCommand(VLCCommand.RANDOM_ON));
+					break;
+				case GRASS_PLAYER_SHUFFLE_OFF:
+					executeCommand(s, -2.80E8, -7.80E8, score, () -> VLCControl.sendCommand(VLCCommand.RANDOM_OFF));
+					break;
+
+				case GRASS_PLAYER_STATUS:
+					executeCommand(s, -1.60E8, -7.50E8, score, createStatusCommand());
 					break;
 
 				case PLAYER_NEXT:
-					// false -1.46, -2.32, -4.00
-					// true -1.32, -1.43, -1.63, -1.70, -1.77, -1.85, -1.95
-					executeCommand(s, -1.40E8, -2.32E8, score, () -> VLCControl.sendCommand(VLCCommand.NEXT));
-					executeCommand(s, -2.33E8, -4.00E8, score, () -> VLCControl.sendCommand(VLCCommand.NEXT));
+					// false -2.58, -3.01
+					// true -1.61, -1.82, -1.96, -4.27, -5.33
+					executeCommand(s, -3.01E8, -7.30E8, score, () -> VLCControl.sendCommand(VLCCommand.NEXT));
 					break;
 				case PLAYER_PREVIOUS:
-					executeCommand(s, -1.50E8, -3.50E8, score, () -> VLCControl.sendCommand(VLCCommand.PREV));
-					break;
-				case PLAYER_STOP:
-					// false -1.76, -3.58, -4.75
-					// true -1.41, -1.68, -1.76
-					executeCommand(s, -1.41E8, -3.58E8, score, () -> VLCControl.sendCommand(VLCCommand.PAUSE));
-					break;
-				case PLAYER_PLAY:
-					// false -1.98, -2.43, -2.69
-					// true -1.48, -1.99, -1.98, -2.62, -3.16
-					executeCommand(s, -1.40E8, -1.90E8, score, () -> VLCControl.sendCommand(VLCCommand.PLAY));
-					break;
-				case PLAYER_VOLUME_UP:
-					// false -1.59, -1.87, -3.03
-					// true -2.94
-					executeCommand(s, -1.88E8, -3.00E8, score, () -> VLCControl.sendCommand(VLCCommand.VOLUP));
-					break;
-				case PLAYER_VOLUME_DOWN:
-					// true
-					executeCommand(s, -1.36E8, -3.30E8, score, () -> VLCControl.sendCommand(VLCCommand.VOLDOWN));
-					break;
-				case PLAYER_RANDOM_ON:
-					// false -1.66, -2.36
-					// true -2.52, -2.54, -2.95,
-					executeCommand(s, -2.52E8, -3.30E8, score, () -> VLCControl.sendCommand(VLCCommand.RANDOM_ON));
-					break;
-				case PLAYER_RANDOM_OFF:
-					// true
-					executeCommand(s, -1.36E8, -3.46E8, score, () -> VLCControl.sendCommand(VLCCommand.RANDOM_OFF));
-					break;
-				case PLAYER_STATUS:
-					// false
-					// true -1.69, -1.91, -2.18, -2.21, -3.10
-					Command cmd = () -> {
-						VLCControl.waitForResponse(str -> {
-							if (str.contains("Welcome, Master"))
-								return false;
-							String[] chunks = str.split("\n");
-							if (chunks.length != 3)
-								return false;
-							String[] pathChunks = chunks[0].split("/");
-							String song = pathChunks[pathChunks.length - 1];
-							song = song.substring(0, song.lastIndexOf(" )"));
-							TrayControl.showMessage(song);
-							return true;
-						});
-						VLCControl.sendCommand(VLCCommand.STATUS);
-					};
-					executeCommand(s, -1.60E8, -3.20E8, score, cmd);
+					executeCommand(s, -1.50E8, -6.80E8, score, () -> VLCControl.sendCommand(VLCCommand.PREV));
 					break;
 
 				case OPEN_HW:
@@ -172,11 +165,11 @@ public enum SpeechControl {
 					break;
 				case OPEN_GRASS:
 					// true -2.22, -4.92
-					executeCommand(s, -2.40E8, -5.37E8, score,
+					executeCommand(s, -1.20E8, -5.70E8, score,
 							() -> CmdControl.openChrome("https://www.gattserver.cz"));
 					break;
 				case OPEN_NEXUS:
-					executeCommand(s, -2.59E8, -4.56E8, score,
+					executeCommand(s, -2.59E8, -5.40E8, score,
 							() -> CmdControl.openChrome("https://www.gattserver.cz:8843"));
 					break;
 				}
