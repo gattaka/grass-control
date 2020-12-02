@@ -109,28 +109,28 @@ public enum SpeechControl {
 					break;
 
 				case PLAYER_NEXT:
-					// false -1.46, -2.32
+					// false -1.46, -2.32, -4.00
 					// true -1.32, -1.43, -1.63, -1.70, -1.77, -1.85, -1.95
 					executeCommand(s, -1.40E8, -2.32E8, score, () -> VLCControl.sendCommand(VLCCommand.NEXT));
-					executeCommand(s, -2.33E8, -6.76E8, score, () -> VLCControl.sendCommand(VLCCommand.NEXT));
+					executeCommand(s, -2.33E8, -4.00E8, score, () -> VLCControl.sendCommand(VLCCommand.NEXT));
 					break;
 				case PLAYER_PREVIOUS:
 					executeCommand(s, -1.50E8, -3.50E8, score, () -> VLCControl.sendCommand(VLCCommand.PREV));
 					break;
 				case PLAYER_STOP:
-					// false -1.76, -4.75
+					// false -1.76, -3.58, -4.75
 					// true -1.41, -1.68, -1.76
-					executeCommand(s, -1.41E8, -4.75E8, score, () -> VLCControl.sendCommand(VLCCommand.PAUSE));
+					executeCommand(s, -1.41E8, -3.58E8, score, () -> VLCControl.sendCommand(VLCCommand.PAUSE));
 					break;
 				case PLAYER_PLAY:
-					// false -2.69
+					// false -1.98, -2.43, -2.69
 					// true -1.48, -1.99, -1.98, -2.62, -3.16
-					executeCommand(s, -1.48E8, -3.17E8, score, () -> VLCControl.sendCommand(VLCCommand.PLAY));
+					executeCommand(s, -1.40E8, -1.90E8, score, () -> VLCControl.sendCommand(VLCCommand.PLAY));
 					break;
 				case PLAYER_VOLUME_UP:
-					// false -1.59, -1.87
+					// false -1.59, -1.87, -3.03
 					// true -2.94
-					executeCommand(s, -1.88E8, -3.20E8, score, () -> VLCControl.sendCommand(VLCCommand.VOLUP));
+					executeCommand(s, -1.88E8, -3.00E8, score, () -> VLCControl.sendCommand(VLCCommand.VOLUP));
 					break;
 				case PLAYER_VOLUME_DOWN:
 					// true

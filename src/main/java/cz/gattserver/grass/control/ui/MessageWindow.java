@@ -33,7 +33,7 @@ public class MessageWindow extends JWindow {
 
 	private static final Logger logger = LoggerFactory.getLogger(MessageWindow.class);
 
-	private static final int DELAY = 5000;
+	private static final int DELAY = 10000;
 
 	// K této kolekci se musí přistupovat přes synchronized
 	private static List<MessageWindow> activeWindows = new ArrayList<MessageWindow>();

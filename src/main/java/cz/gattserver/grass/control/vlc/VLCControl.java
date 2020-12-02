@@ -54,7 +54,7 @@ public enum VLCControl {
 			connect();
 		vlc.getSupport().addPropertyChangeListener(VLCClient.CLIENT_MESSAGE, new PropertyChangeListener() {
 
-			StringBuilder sb = new StringBuilder();
+			private StringBuilder sb = new StringBuilder();
 
 			@Override
 			public void propertyChange(PropertyChangeEvent evt) {
@@ -64,11 +64,12 @@ public enum VLCControl {
 				if (s.contains(delimiter)) {
 					String val = sb.toString();
 					if (callback.apply(val.substring(0, val.indexOf(delimiter)))) {
-						vlc.getSupport().removePropertyChangeListener(this);
+						vlc.getSupport().removePropertyChangeListener(VLCClient.CLIENT_MESSAGE, this);
 					} else {
 						sb = new StringBuilder();
 					}
 				}
+
 			}
 		});
 	}
