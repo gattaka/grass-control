@@ -4,6 +4,8 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Toolkit;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
@@ -38,7 +40,7 @@ public class MessageWindow extends JWindow {
 	// K této kolekci se musí přistupovat přes synchronized
 	private static List<MessageWindow> activeWindows = new ArrayList<MessageWindow>();
 
-	private static void addWindow(MessageWindow caller) {
+	private static void registerWindow(MessageWindow caller) {
 		synchronized (activeWindows) {
 			logger.trace("MessageWindow '" + caller.getMessage() + "' addWindow ");
 			for (MessageWindow w : activeWindows) {
@@ -49,7 +51,7 @@ public class MessageWindow extends JWindow {
 		}
 	}
 
-	private static void removeWindow(MessageWindow caller) {
+	private static void unregisterWindow(MessageWindow caller) {
 		synchronized (activeWindows) {
 			logger.trace("MessageWindow '" + caller.getMessage() + "' removeWindow ");
 			activeWindows.remove(caller);
@@ -130,31 +132,49 @@ public class MessageWindow extends JWindow {
 
 		setVisible(true);
 
-		new Thread(new Runnable() {
-			@Override
-			public void run() {
-				MessageWindow w = MessageWindow.this;
-				addWindow(w);
+		new Thread(() -> {
+			registerWindow(MessageWindow.this);
+		}).start();
+
+		new Thread(() -> {
+			try {
+				MessageWindow win = MessageWindow.this;
+				Thread.sleep(DELAY);
+				while (win.getOpacity() > 0 && win.isVisible()) {
+					Thread.sleep(50);
+					win.setOpacity(Math.max(win.getOpacity() - 0.05f, 0));
+				}
+				win.setVisible(false);
+				unregisterWindow(win);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
 			}
 		}).start();
 
-		new Thread(new Runnable() {
+		addMouseListener(new MouseListener() {
+
 			@Override
-			public void run() {
-				try {
-					MessageWindow w = MessageWindow.this;
-					Thread.sleep(DELAY);
-					while (w.getOpacity() > 0) {
-						Thread.sleep(50);
-						w.setOpacity(Math.max(w.getOpacity() - 0.05f, 0));
-					}
-					w.setVisible(false);
-					removeWindow(w);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
+			public void mouseReleased(MouseEvent e) {
 			}
-		}).start();
+
+			@Override
+			public void mousePressed(MouseEvent e) {
+			}
+
+			@Override
+			public void mouseExited(MouseEvent e) {
+			}
+
+			@Override
+			public void mouseEntered(MouseEvent e) {
+			}
+
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				unregisterWindow(MessageWindow.this);
+				MessageWindow.this.setVisible(false);
+			}
+		});
 
 		logger.trace("MessageWindow '" + message + "' creation done");
 	}
