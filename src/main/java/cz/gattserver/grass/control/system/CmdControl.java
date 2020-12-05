@@ -1,4 +1,4 @@
-package cz.gattserver.grass.control;
+package cz.gattserver.grass.control.system;
 
 import java.io.IOException;
 

@@ -5,7 +5,8 @@ import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import cz.gattserver.grass.control.CmdControl;
+import cz.gattserver.grass.control.system.CmdControl;
+import cz.gattserver.grass.control.system.VolumeControl;
 import cz.gattserver.grass.control.ui.MessageLevel;
 import cz.gattserver.grass.control.ui.TrayControl;
 import cz.gattserver.grass.control.vlc.VLCCommand;
@@ -30,8 +31,8 @@ public enum SpeechControl {
 	private static final String GRASS_PLAYER_PREVIOUS = "grass control player previous";
 	private static final String GRASS_PLAYER_STOP = "grass control player stop";
 	private static final String GRASS_PLAYER_PLAY = "grass control player play";
-	private static final String GRASS_PLAYER_VOLUME_UP = "grass control player volume up";
-	private static final String GRASS_PLAYER_VOLUME_DOWN = "grass control player volume down";
+	private static final String GRASS_PLAYER_VOLUME_UP = "grass control volume up";
+	private static final String GRASS_PLAYER_VOLUME_DOWN = "grass control volume down";
 	private static final String GRASS_PLAYER_SHUFFLE_ON = "grass control player shuffle on";
 	private static final String GRASS_PLAYER_SHUFFLE_OFF = "grass control player shuffle off";
 	private static final String GRASS_PLAYER_STATUS = "grass control player status";
@@ -133,10 +134,10 @@ public enum SpeechControl {
 					break;
 
 				case GRASS_PLAYER_VOLUME_UP:
-					executeCommand(s, -1.88E8, -7.60E8, score, () -> VLCControl.sendCommand(VLCCommand.VOLUP));
+					executeCommand(s, -1.88E8, -7.60E8, score, () -> VolumeControl.increaseVolume());
 					break;
 				case GRASS_PLAYER_VOLUME_DOWN:
-					executeCommand(s, -1.36E8, -7.60E8, score, () -> VLCControl.sendCommand(VLCCommand.VOLDOWN));
+					executeCommand(s, -1.36E8, -7.60E8, score, () -> VolumeControl.dereaseVolume());
 					break;
 
 				case GRASS_PLAYER_SHUFFLE_ON:
@@ -163,9 +164,8 @@ public enum SpeechControl {
 					executeCommand(s, -2.40E8, -4.13E8, score,
 							() -> CmdControl.openChrome("https://www.gattserver.cz/hw"));
 					break;
-				case OPEN_GRASS:
-					// true -2.22, -4.92
-					executeCommand(s, -1.20E8, -5.70E8, score,
+				case OPEN_GRASS: 
+					executeCommand(s, -2.90E8, -5.70E8, score,
 							() -> CmdControl.openChrome("https://www.gattserver.cz"));
 					break;
 				case OPEN_NEXUS:
