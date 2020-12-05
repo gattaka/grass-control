@@ -37,31 +37,6 @@ public class MessageWindow extends JWindow {
 
 	private static final int DELAY = 10000;
 
-	// K této kolekci se musí přistupovat přes synchronized
-	private static List<MessageWindow> activeWindows = new ArrayList<MessageWindow>();
-
-	private static void registerWindow(MessageWindow caller) {
-		synchronized (activeWindows) {
-			logger.trace("MessageWindow '" + caller.getMessage() + "' addWindow ");
-			for (MessageWindow w : activeWindows) {
-				Point p = caller.getLocation();
-				caller.setLocation(p.x, p.y - w.getHeight());
-			}
-			activeWindows.add(caller);
-		}
-	}
-
-	private static void unregisterWindow(MessageWindow caller) {
-		synchronized (activeWindows) {
-			logger.trace("MessageWindow '" + caller.getMessage() + "' removeWindow ");
-			activeWindows.remove(caller);
-			for (MessageWindow w : activeWindows) {
-				Point p = w.getLocation();
-				w.setLocation(p.x, p.y + caller.getHeight());
-			}
-		}
-	}
-
 	public static float toPerc(int value) {
 		return value / 255f;
 	}
@@ -133,7 +108,7 @@ public class MessageWindow extends JWindow {
 		setVisible(true);
 
 		new Thread(() -> {
-			registerWindow(MessageWindow.this);
+			MessageWindowRegister.registerWindow(MessageWindow.this);
 		}).start();
 
 		new Thread(() -> {
@@ -145,7 +120,7 @@ public class MessageWindow extends JWindow {
 					win.setOpacity(Math.max(win.getOpacity() - 0.05f, 0));
 				}
 				win.setVisible(false);
-				unregisterWindow(win);
+				MessageWindowRegister.unregisterWindow(win);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
@@ -171,7 +146,7 @@ public class MessageWindow extends JWindow {
 
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				unregisterWindow(MessageWindow.this);
+				MessageWindowRegister.unregisterWindow(MessageWindow.this);
 				MessageWindow.this.setVisible(false);
 			}
 		});
