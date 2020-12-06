@@ -26,6 +26,13 @@ public enum TrayControl {
 
 	private TrayIcon trayIcon;
 
+	public static BufferedImage getIcon() throws IOException {
+		// src/main/resources/favicon.png
+		InputStream is = Main.class.getClassLoader().getResourceAsStream("favicon.png");
+		BufferedImage image = ImageIO.read(is);
+		return image;
+	}
+
 	public void create() throws IOException {
 		// Check the SystemTray is supported
 		if (!SystemTray.isSupported()) {
@@ -34,23 +41,23 @@ public enum TrayControl {
 		}
 
 		PopupMenu popup = new PopupMenu();
-
-		// src/main/resources/favicon.png
-		InputStream is = Main.class.getClassLoader().getResourceAsStream("favicon.png");
-		BufferedImage image = ImageIO.read(is);
-		trayIcon = new TrayIcon(image, "Grass control");
+		trayIcon = new TrayIcon(getIcon(), "Grass control");
 		SystemTray tray = SystemTray.getSystemTray();
 
-		CheckboxMenuItem speechRecognitionCheckbox = new CheckboxMenuItem("Speech recognition enabled", true);
+		CheckboxMenuItem speechRecognitionCheckbox = new CheckboxMenuItem("Hlasové ovládání", true);
 		speechRecognitionCheckbox
 				.addItemListener(e -> SpeechControl.INSTANCE.setEnabled(speechRecognitionCheckbox.getState()));
-
-		MenuItem exitItem = new MenuItem("Exit");
-		exitItem.addActionListener(l -> System.exit(0));
-
-		// Add components to pop-up menu
 		popup.add(speechRecognitionCheckbox);
+
+		MenuItem historyItem = new MenuItem("Historie příkazů");
+		historyItem.addActionListener(e -> {
+			new HistoryWindow().setVisible(true);
+		});
+		popup.add(historyItem);
+
 		popup.addSeparator();
+		MenuItem exitItem = new MenuItem("Ukončit");
+		exitItem.addActionListener(l -> System.exit(0));
 		popup.add(exitItem);
 
 		trayIcon.setPopupMenu(popup);

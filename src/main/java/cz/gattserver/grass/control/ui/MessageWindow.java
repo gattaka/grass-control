@@ -2,15 +2,12 @@ package cz.gattserver.grass.control.ui;
 
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.imageio.ImageIO;
 import javax.swing.Box;

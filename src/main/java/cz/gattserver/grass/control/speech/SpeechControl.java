@@ -1,12 +1,17 @@
 package cz.gattserver.grass.control.speech;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import cz.gattserver.grass.control.system.CmdControl;
 import cz.gattserver.grass.control.system.VolumeControl;
+import cz.gattserver.grass.control.ui.HistoryWindow;
 import cz.gattserver.grass.control.ui.MessageLevel;
 import cz.gattserver.grass.control.ui.TrayControl;
 import cz.gattserver.grass.control.vlc.VLCCommand;
@@ -50,9 +55,13 @@ public enum SpeechControl {
 	private static final String OPEN_HW = "grass control open hardware";
 	private static final String OPEN_GRASS = "grass control open grass";
 	private static final String OPEN_NEXUS = "grass control open nexus";
+	private static final String SYSTEM_MONITOR = "grass control open system monitor";
+	private static final String SPEECH_HISTORY = "grass control open speech history";
 
 	private volatile boolean running = false;
 	private volatile boolean enabled = true;
+
+	private static List<SpeechLogTO> history = new ArrayList<>();
 
 	public void start() {
 		if (running)
@@ -123,7 +132,8 @@ public enum SpeechControl {
 					executeCommand(s, -1.00E8, -9.20E8, score, () -> VLCControl.sendCommand(VLCCommand.NEXT));
 					break;
 				case GRASS_PLAYER_PREVIOUS:
-					executeCommand(s, -2.35E8, -9.10E8, score, () -> VLCControl.sendCommand(VLCCommand.PREV));
+					// false -6.99
+					executeCommand(s, -2.35E8, -6.90E8, score, () -> VLCControl.sendCommand(VLCCommand.PREV));
 					break;
 
 				case GRASS_PLAYER_STOP:
@@ -148,7 +158,7 @@ public enum SpeechControl {
 					break;
 
 				case GRASS_PLAYER_STATUS:
-					executeCommand(s, -1.60E8, -7.50E8, score, createStatusCommand());
+					executeCommand(s, -1.00E8, -7.50E8, score, createStatusCommand());
 					break;
 
 				case PLAYER_NEXT:
@@ -164,13 +174,20 @@ public enum SpeechControl {
 					executeCommand(s, -2.40E8, -4.13E8, score,
 							() -> CmdControl.openChrome("https://www.gattserver.cz/hw"));
 					break;
-				case OPEN_GRASS: 
+				case OPEN_GRASS:
 					executeCommand(s, -2.90E8, -5.70E8, score,
 							() -> CmdControl.openChrome("https://www.gattserver.cz"));
 					break;
 				case OPEN_NEXUS:
 					executeCommand(s, -2.59E8, -5.40E8, score,
 							() -> CmdControl.openChrome("https://www.gattserver.cz:8843"));
+					break;
+				case SYSTEM_MONITOR:
+					executeCommand(s, -2.59E8, -5.40E8, score,
+							() -> CmdControl.openChrome("https://www.gattserver.cz/system-monitor"));
+					break;
+				case SPEECH_HISTORY:
+					executeCommand(s, -2.59E8, -5.40E8, score, () -> new HistoryWindow().setVisible(true));
 					break;
 				}
 			}
@@ -185,6 +202,7 @@ public enum SpeechControl {
 			TrayControl.showMessage(msg);
 			logger.info(msg);
 		} else if (score <= fromScore && score >= toScore) {
+			history.add(new SpeechLogTO(new Date(), text, score, true));
 			TrayControl.showMessage(text + " (score " + score + ")");
 			logger.info("Score in range");
 			try {
@@ -196,6 +214,7 @@ public enum SpeechControl {
 			}
 		} else {
 			logger.info("Score out of range");
+			history.add(new SpeechLogTO(new Date(), text, score, false));
 		}
 	}
 
@@ -203,4 +222,7 @@ public enum SpeechControl {
 		this.enabled = enabled;
 	}
 
+	public static List<SpeechLogTO> getHistory() {
+		return Collections.unmodifiableList(history);
+	}
 }
