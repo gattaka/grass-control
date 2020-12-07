@@ -1,8 +1,8 @@
 package cz.gattserver.grass.control.vlc;
 
 import java.beans.PropertyChangeSupport;
-import java.io.*;
 import java.io.IOException;
+import java.io.InputStream;
 
 import org.apache.commons.net.telnet.*;
 import org.apache.commons.net.telnet.TelnetClient;

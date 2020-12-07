@@ -101,7 +101,7 @@ public enum SpeechControl {
 		};
 	}
 
-	private void runControl() throws InterruptedException, IOException {
+	private void runControl() throws InterruptedException, IOException {		
 		Configuration configuration = new Configuration();
 		configuration.setAcousticModelPath(ACOUSTIC_MODEL);
 		configuration.setDictionaryPath(DICTIONARY_PATH);
