@@ -12,19 +12,22 @@ import javafx.stage.Stage;
 import cz.gattserver.grass.control.bluetooth.BluetoothControl;
 import cz.gattserver.grass.control.speech.SpeechControl;
 import cz.gattserver.grass.control.system.VolumeControl;
+import cz.gattserver.grass.control.ui.Message;
+import cz.gattserver.grass.control.ui.MessageLevel;
 import cz.gattserver.grass.control.ui.TrayControl;
 
 public class Main extends Application {
 
 	public static void main(String[] args) throws IOException, InterruptedException {
 		TrayControl.INSTANCE.create();
-		BluetoothControl.INSTANCE.start();
-		SpeechControl.INSTANCE.start();
-//		VolumeControl.probe();
+		// BluetoothControl.INSTANCE.start();
+		// SpeechControl.INSTANCE.start();
+		// VolumeControl.probe();
 
 		TrayControl.showMessage("Grass control started");
 
 		launch(args);
+
 	}
 
 	@Override
@@ -36,13 +39,14 @@ public class Main extends Application {
 
 			@Override
 			public void handle(ActionEvent event) {
-				System.out.println("Hello World!");
+				Message.create("testMsg", MessageLevel.INFO);
 			}
 		});
 
 		StackPane root = new StackPane();
 		root.getChildren().add(btn);
 		primaryStage.setScene(new Scene(root, 300, 250));
+		primaryStage.setAlwaysOnTop(true);
 		primaryStage.show();
 	}
 
