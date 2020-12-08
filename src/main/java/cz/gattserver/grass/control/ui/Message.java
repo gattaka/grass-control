@@ -2,19 +2,7 @@ package cz.gattserver.grass.control.ui;
 
 import java.awt.Dimension;
 import java.awt.Toolkit;
-import java.io.IOException;
 import java.io.InputStream;
-
-import javax.imageio.ImageIO;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.ImageIcon;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JSeparator;
-import javax.swing.SwingConstants;
-import javax.swing.border.EmptyBorder;
-import javax.swing.border.MatteBorder;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,7 +10,6 @@ import org.slf4j.LoggerFactory;
 import cz.gattserver.grass.control.Main;
 import javafx.application.Platform;
 import javafx.event.EventHandler;
-import javafx.event.EventType;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -34,17 +21,11 @@ import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.scene.paint.Paint;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
 public class Message {
-
-	private static final long serialVersionUID = -7019332829942824879L;
 
 	private static final Logger logger = LoggerFactory.getLogger(MessageWindow.class);
 
@@ -78,7 +59,7 @@ public class Message {
 		grid.setPadding(new Insets(5));
 		grid.setBackground(
 				new Background(new BackgroundFill(Color.rgb(244, 241, 230, 1), CornerRadii.EMPTY, Insets.EMPTY)));
-		grid.setStyle("-fx-border-color: #ff0000;");
+		grid.setStyle("-fx-border-color: #aaa;");
 
 		Scene scene = new Scene(grid);
 		stage.setScene(scene);
