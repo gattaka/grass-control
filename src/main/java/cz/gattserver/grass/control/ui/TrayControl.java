@@ -26,10 +26,13 @@ public enum TrayControl {
 
 	private TrayIcon trayIcon;
 
-	public static BufferedImage getIcon() throws IOException {
+	public static InputStream getIconStream() throws IOException {
 		// src/main/resources/favicon.png
-		InputStream is = Main.class.getClassLoader().getResourceAsStream("favicon.png");
-		BufferedImage image = ImageIO.read(is);
+		return Main.class.getClassLoader().getResourceAsStream("favicon.png");
+	}
+
+	public static BufferedImage getIcon() throws IOException {
+		BufferedImage image = ImageIO.read(getIconStream());
 		return image;
 	}
 
@@ -50,9 +53,7 @@ public enum TrayControl {
 		popup.add(speechRecognitionCheckbox);
 
 		MenuItem historyItem = new MenuItem("Historie příkazů");
-		historyItem.addActionListener(e -> {
-			new HistoryWindow().setVisible(true);
-		});
+		historyItem.addActionListener(e -> HistoryWindow.create());
 		popup.add(historyItem);
 
 		popup.addSeparator();

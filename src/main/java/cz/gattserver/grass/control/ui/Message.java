@@ -41,6 +41,10 @@ public class Message {
 	}
 
 	public static void create(String message, MessageLevel level) {
+		Platform.runLater(() -> Message.createInPlatform(message, level));
+	}
+
+	private static void createInPlatform(String message, MessageLevel level) {
 		logger.trace("MessageWindow '" + message + "' creation started");
 
 		// https://stackoverflow.com/questions/24564136/javafx-can-you-create-a-stage-that-doesnt-show-on-the-task-bar-and-is-undecora

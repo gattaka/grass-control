@@ -1,99 +1,96 @@
 package cz.gattserver.grass.control.ui;
 
-import java.awt.BorderLayout;
-import java.awt.Button;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.List;
-
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.table.DefaultTableModel;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import cz.gattserver.grass.control.speech.SpeechControl;
 import cz.gattserver.grass.control.speech.SpeechLogTO;
+import javafx.application.Platform;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.image.Image;
+import javafx.scene.layout.GridPane;
+import javafx.stage.Stage;
 
-public class HistoryWindow extends JFrame {
-
-	private static final long serialVersionUID = 2446738778779580737L;
+public class HistoryWindow {
 
 	private static final Logger logger = LoggerFactory.getLogger(HistoryWindow.class);
 
-	private JTable table;
-
-	public HistoryWindow() {
-		super("Historie příkazů");
-
-		setLayout(new BorderLayout());
-
-		JPanel buttonsLayout = new JPanel();
-		add(buttonsLayout, BorderLayout.PAGE_START);
-
-		Button okButton = new Button("Zavřít");
-		okButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				HistoryWindow.this.setVisible(false);
-			}
-		});
-		buttonsLayout.add(okButton);
-
-		Button refreshButton = new Button("Obnovit");
-		refreshButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				populateTable();
-			}
-		});
-		buttonsLayout.add(refreshButton);
-
-		setSize(800, 500);
-		setLocationRelativeTo(null);
-
-		try {
-			setIconImage(TrayControl.getIcon());
-		} catch (IOException e) {
-			logger.error("Icon load failed");
-		}
-
-		addWindowListener(new WindowAdapter() {
-			public void windowClosing(WindowEvent windowEvent) {
-				HistoryWindow.this.setVisible(false);
-			}
-		});
-
-		table = new JTable();
-
-		JScrollPane scrollPane = new JScrollPane(table);
-		table.setFillsViewportHeight(true);
-		add(scrollPane, BorderLayout.PAGE_END);
-
-		populateTable();
-
+	public static void create() {
+		Platform.runLater(HistoryWindow::createInPlatform);
 	}
 
-	private void populateTable() {
-		List<SpeechLogTO> list = SpeechControl.getHistory();
-		SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
-		Object[][] items = new Object[list.size()][4];
-		for (int i = 0; i < list.size(); i++) {
-			SpeechLogTO to = list.get(i);
-			items[i][0] = sdf.format(to.getTime());
-			items[i][1] = to.getCommand();
-			items[i][2] = to.getScore();
-			items[i][3] = to.isInRange() ? "Ano" : "Ne";
+	private static void createInPlatform() {
+		GridPane grid = new GridPane();
+		Scene scene = new Scene(grid);
+		Stage stage = new Stage();
+		stage.setTitle("Historie příkazů");
+		stage.setHeight(500);
+
+		TableView<SpeechLogTO> table = new TableView<>();
+
+		TableColumn<SpeechLogTO, String> timeCol = new TableColumn<>("Čas");
+		timeCol.setMinWidth(100);
+		SimpleDateFormat sdf = new SimpleDateFormat("HH:mm dd.MM.yyyy");
+		timeCol.setCellValueFactory(p -> new SimpleStringProperty(sdf.format(p.getValue().getTime())));
+		table.getColumns().add(timeCol);
+
+		TableColumn<SpeechLogTO, String> commandCol = new TableColumn<>("Příkaz");
+		commandCol.setMinWidth(300);
+		commandCol.setCellValueFactory(p -> new SimpleStringProperty(p.getValue().getCommand()));
+		table.getColumns().add(commandCol);
+
+		TableColumn<SpeechLogTO, String> scoreCol = new TableColumn<>("Score");
+		scoreCol.setMinWidth(90);
+		scoreCol.setCellValueFactory(p -> new SimpleStringProperty(String.valueOf(p.getValue().getScore())));
+		table.getColumns().add(scoreCol);
+
+		TableColumn<SpeechLogTO, String> inRangeCol = new TableColumn<>("V rozsahu");
+		inRangeCol.setCellValueFactory(p -> new SimpleStringProperty(p.getValue().isInRange() ? "Ano" : "Ne"));
+		table.getColumns().add(inRangeCol);
+
+		populateTable(table);
+
+		grid.setAlignment(Pos.CENTER);
+		grid.setHgap(10);
+		grid.setVgap(10);
+		grid.setPadding(new Insets(8));
+
+		grid.add(table, 0, 0, 2, 1);
+
+		Button closeBtn = new Button();
+		closeBtn.setText("Zavřít");
+		closeBtn.setOnAction(e -> stage.hide());
+
+		Button refreshButton = new Button();
+		refreshButton.setText("Obnovit");
+		refreshButton.setOnAction(e -> populateTable(table));
+
+		grid.add(refreshButton, 0, 1);
+		grid.add(closeBtn, 1, 1);
+
+		stage.setScene(scene);
+		stage.show();
+
+		try {
+			stage.getIcons().add(new Image(TrayControl.getIconStream()));
+		} catch (IOException e1) {
+			logger.error("Icon load failed");
 		}
-		Object[] columnNames = new Object[] { "Čas", "Příkaz", "Score", "V rozsahu" };
-		table.setModel(new DefaultTableModel(items, columnNames));
-		table.getColumnModel().getColumn(0).setPreferredWidth(80);
-		table.getColumnModel().getColumn(1).setPreferredWidth(300);
-		table.getColumnModel().getColumn(2).setPreferredWidth(60);
+	}
+
+	private static void populateTable(TableView<SpeechLogTO> table) {
+		ObservableList<SpeechLogTO> data = FXCollections.observableArrayList(SpeechControl.getHistory());
+		table.setItems(data);
 	}
 }

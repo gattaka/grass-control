@@ -101,7 +101,7 @@ public enum SpeechControl {
 		};
 	}
 
-	private void runControl() throws InterruptedException, IOException {		
+	private void runControl() throws InterruptedException, IOException {
 		Configuration configuration = new Configuration();
 		configuration.setAcousticModelPath(ACOUSTIC_MODEL);
 		configuration.setDictionaryPath(DICTIONARY_PATH);
@@ -187,7 +187,7 @@ public enum SpeechControl {
 							() -> CmdControl.openChrome("https://www.gattserver.cz/system-monitor"));
 					break;
 				case SPEECH_HISTORY:
-					executeCommand(s, -2.59E8, -5.40E8, score, () -> new HistoryWindow().setVisible(true));
+					executeCommand(s, -2.59E8, -5.40E8, score, HistoryWindow::create);
 					break;
 				}
 			}
