@@ -1,46 +1,41 @@
 package cz.gattserver.grass.control.ui;
 
-import java.awt.Point;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import javafx.application.Platform;
+import javafx.stage.Stage;
 
 public class MessageWindowRegister {
 
-	private static final Logger logger = LoggerFactory.getLogger(MessageWindowRegister.class);
-
 	// K této kolekci se musí přistupovat přes synchronized
-	private static List<MessageWindow> activeWindows = new ArrayList<MessageWindow>();
+	private static List<Stage> activeWindows = new ArrayList<Stage>();
 
-	public static void registerWindow(MessageWindow caller) {
+	public static void registerWindow(Stage caller) {
 		synchronized (activeWindows) {
-			logger.trace("MessageWindow '" + caller.getMessage() + "' addWindow ");
-			for (MessageWindow w : activeWindows) {
-				Point p = caller.getLocation();
-				caller.setLocation(p.x, p.y - w.getHeight());
-			}
-			activeWindows.add(caller);
+			Platform.runLater(() -> {
+				for (Stage w : activeWindows)
+					caller.setY(caller.getY() - w.getHeight());
+				activeWindows.add(caller);
+			});
 		}
 	}
 
-	public static void unregisterWindow(MessageWindow caller) {
+	public static void unregisterWindow(Stage caller) {
 		synchronized (activeWindows) {
-			logger.trace("MessageWindow '" + caller.getMessage() + "' removeWindow ");
-			boolean found = false;
-			for (int i = 0; i < activeWindows.size(); i++) {
-				MessageWindow w = activeWindows.get(i);
-				if (w == caller) {
-					found = true;
-					continue;
+			Platform.runLater(() -> {
+				boolean found = false;
+				for (int i = 0; i < activeWindows.size(); i++) {
+					Stage w = activeWindows.get(i);
+					if (w == caller) {
+						found = true;
+						continue;
+					}
+					if (found)
+						w.setY(w.getY() + caller.getHeight());
 				}
-				if (found) {
-					Point p = w.getLocation();
-					w.setLocation(p.x, p.y + caller.getHeight());
-				}
-			}
-			activeWindows.remove(caller);
+				activeWindows.remove(caller);
+			});
 		}
 	}
 

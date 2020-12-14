@@ -70,11 +70,11 @@ public enum TrayControl {
 	}
 
 	public static void showMessage(String message) {
-		new MessageWindow(message, MessageLevel.INFO);
+		Message.create(message, MessageLevel.INFO);
 	}
 
 	public static void showMessage(String message, MessageLevel level) {
-		new MessageWindow(message, level);
+		Message.create(message, level);
 	}
 
 }

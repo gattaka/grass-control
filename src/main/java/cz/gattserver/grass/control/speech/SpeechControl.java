@@ -151,7 +151,7 @@ public enum SpeechControl {
 					break;
 
 				case GRASS_PLAYER_SHUFFLE_ON:
-					executeCommand(s, -2.52E8, -9.50E8, score, () -> VLCControl.sendCommand(VLCCommand.RANDOM_ON));
+					executeCommand(s, -3.50E8, -9.50E8, score, () -> VLCControl.sendCommand(VLCCommand.RANDOM_ON));
 					break;
 				case GRASS_PLAYER_SHUFFLE_OFF:
 					executeCommand(s, -2.80E8, -7.80E8, score, () -> VLCControl.sendCommand(VLCCommand.RANDOM_OFF));
@@ -183,7 +183,7 @@ public enum SpeechControl {
 							() -> CmdControl.openChrome("https://www.gattserver.cz:8843"));
 					break;
 				case SYSTEM_MONITOR:
-					executeCommand(s, -2.59E8, -5.40E8, score,
+					executeCommand(s, -2.93E8, -5.40E8, score,
 							() -> CmdControl.openChrome("https://www.gattserver.cz/system-monitor"));
 					break;
 				case SPEECH_HISTORY:

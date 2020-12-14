@@ -14,6 +14,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
+import javafx.scene.control.Separator;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
@@ -27,7 +28,7 @@ import javafx.stage.StageStyle;
 
 public class Message {
 
-	private static final Logger logger = LoggerFactory.getLogger(MessageWindow.class);
+	private static final Logger logger = LoggerFactory.getLogger(Message.class);
 
 	private static final int DELAY = 10000;
 
@@ -45,7 +46,7 @@ public class Message {
 		// https://stackoverflow.com/questions/24564136/javafx-can-you-create-a-stage-that-doesnt-show-on-the-task-bar-and-is-undecora
 		Stage primaryStage = new Stage();
 		primaryStage.initStyle(StageStyle.UTILITY);
-		primaryStage.setOpacity(0.);
+		primaryStage.setOpacity(0);
 		primaryStage.show();
 		Stage stage = new Stage();
 		stage.initOwner(primaryStage);
@@ -56,9 +57,9 @@ public class Message {
 		grid.setAlignment(Pos.CENTER);
 		grid.setHgap(10);
 		grid.setVgap(10);
-		grid.setPadding(new Insets(5));
+		grid.setPadding(new Insets(8));
 		grid.setBackground(
-				new Background(new BackgroundFill(Color.rgb(244, 241, 230, 1), CornerRadii.EMPTY, Insets.EMPTY)));
+				new Background(new BackgroundFill(Color.rgb(244, 241, 230, 1), new CornerRadii(3), Insets.EMPTY)));
 		grid.setStyle("-fx-border-color: #aaa;");
 
 		Scene scene = new Scene(grid);
@@ -81,12 +82,16 @@ public class Message {
 			messageIconName = "info_16.png";
 			break;
 		}
+
+		Separator separator1 = new Separator();
+		grid.add(separator1, 0, 1, 2, 1);
+
 		Image messageImage = new Image(loadImageStream(messageIconName));
-		grid.add(new ImageView(messageImage), 0, 1);
-		grid.add(new Label(message), 1, 1);
+		grid.add(new ImageView(messageImage), 0, 2);
+		grid.add(new Label(message), 1, 2);
 
 		new Thread(() -> {
-			// MessageWindowRegister.registerWindow(MessageWindow.this);
+			MessageWindowRegister.registerWindow(stage);
 		}).start();
 
 		new Thread(() -> {
@@ -97,7 +102,7 @@ public class Message {
 					Thread.sleep(50);
 				}
 				Platform.runLater(stage::close);
-				// MessageWindowRegister.unregisterWindow(stage);
+				MessageWindowRegister.unregisterWindow(stage);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
@@ -106,7 +111,7 @@ public class Message {
 		scene.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
 			@Override
 			public void handle(MouseEvent mouseEvent) {
-				// MessageWindowRegister.unregisterWindow(MessageWindow.this);
+				MessageWindowRegister.unregisterWindow(stage);
 				stage.close();
 			}
 		});

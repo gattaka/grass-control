@@ -19,15 +19,7 @@ import cz.gattserver.grass.control.ui.TrayControl;
 public class Main extends Application {
 
 	public static void main(String[] args) throws IOException, InterruptedException {
-		TrayControl.INSTANCE.create();
-		// BluetoothControl.INSTANCE.start();
-		// SpeechControl.INSTANCE.start();
-		// VolumeControl.probe();
-
-		TrayControl.showMessage("Grass control started");
-
 		launch(args);
-
 	}
 
 	@Override
@@ -48,6 +40,13 @@ public class Main extends Application {
 		primaryStage.setScene(new Scene(root, 300, 250));
 		primaryStage.setAlwaysOnTop(true);
 		primaryStage.show();
+
+		TrayControl.INSTANCE.create();
+		BluetoothControl.INSTANCE.start();
+		SpeechControl.INSTANCE.start();
+		VolumeControl.probe();
+
+		TrayControl.showMessage("Grass control started");
 	}
 
 }
