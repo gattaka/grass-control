@@ -10,7 +10,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import cz.gattserver.grass.control.system.CmdControl;
-import cz.gattserver.grass.control.system.VolumeControl;
 import cz.gattserver.grass.control.ui.HistoryWindow;
 import cz.gattserver.grass.control.ui.MessageLevel;
 import cz.gattserver.grass.control.ui.TrayControl;
@@ -34,7 +33,7 @@ public enum SpeechControl {
 
 	private static final String VOLUME_UP = "grass control volume up";
 	private static final String VOLUME_DOWN = "grass control volume down";
-	
+
 	private static final String GRASS_PLAYER_NEXT = "grass control player next";
 	private static final String GRASS_PLAYER_PREVIOUS = "grass control player previous";
 	private static final String GRASS_PLAYER_STOP = "grass control player stop";
@@ -42,16 +41,6 @@ public enum SpeechControl {
 	private static final String GRASS_PLAYER_START_SHUFFLE = "grass control player start shuffle";
 	private static final String GRASS_PLAYER_STOP_SHUFFLE = "grass control player stop shuffle";
 	private static final String GRASS_PLAYER_STATUS = "grass control player status";
-
-	private static final String PLAYER_NEXT = "player next";
-	private static final String PLAYER_PREVIOUS = "player previous";
-	// private static final String PLAYER_STOP = "player stop";
-	// private static final String PLAYER_PLAY = "player play";
-	// private static final String PLAYER_VOLUME_UP = "player volume up";
-	// private static final String PLAYER_VOLUME_DOWN = "player volume down";
-	// private static final String PLAYER_RANDOM_ON = "player random on";
-	// private static final String PLAYER_RANDOM_OFF = "player random off";
-	// private static final String PLAYER_STATUS = "player status";
 
 	private static final String OPEN_HW = "grass control open hardware";
 	private static final String OPEN_GRASS = "grass control open grass";
@@ -84,22 +73,20 @@ public enum SpeechControl {
 		running = false;
 	}
 
-	private Command createStatusCommand() {
-		return () -> {
-			VLCControl.waitForResponse(str -> {
-				if (str.contains("Welcome, Master"))
-					return false;
-				String[] chunks = str.split("\n");
-				if (chunks.length != 3)
-					return false;
-				String[] pathChunks = chunks[0].split("/");
-				String song = pathChunks[pathChunks.length - 1];
-				song = song.substring(0, song.lastIndexOf(" )"));
-				TrayControl.showMessage(song);
-				return true;
-			});
-			VLCControl.sendCommand(VLCCommand.STATUS);
-		};
+	private void runVLCStatus() {
+		VLCControl.waitForResponse(str -> {
+			if (str.contains("Welcome, Master"))
+				return false;
+			String[] chunks = str.split("\n");
+			if (chunks.length != 3)
+				return false;
+			String[] pathChunks = chunks[0].split("/");
+			String song = pathChunks[pathChunks.length - 1];
+			song = song.substring(0, song.lastIndexOf(" )"));
+			TrayControl.showMessage(song);
+			return true;
+		});
+		VLCControl.sendCommand(VLCCommand.STATUS);
 	}
 
 	private void runControl() throws InterruptedException, IOException {
@@ -130,11 +117,30 @@ public enum SpeechControl {
 
 				switch (s) {
 				case GRASS_PLAYER_NEXT:
-					executeCommand(s, -1.00E8, -9.20E8, score, () -> VLCControl.sendCommand(VLCCommand.NEXT));
+					executeCommand(s, -1.00E8, -5.70E8, score, () -> {
+						VLCControl.sendCommand(VLCCommand.NEXT);
+						// Musí se počkat, jinak se bude vypisovat ještě
+						// aktuální položka
+						try {
+							Thread.sleep(1000);
+						} catch (InterruptedException e) {
+							e.printStackTrace();
+						}
+						runVLCStatus();
+					});
 					break;
 				case GRASS_PLAYER_PREVIOUS:
-					// false -6.99
-					executeCommand(s, -2.35E8, -6.90E8, score, () -> VLCControl.sendCommand(VLCCommand.PREV));
+					executeCommand(s, -1.00E8, -6.00E8, score, () -> {
+						// Musí se počkat, jinak se bude vypisovat ještě
+						// aktuální položka
+						VLCControl.sendCommand(VLCCommand.PREV);
+						try {
+							Thread.sleep(1000);
+						} catch (InterruptedException e) {
+							e.printStackTrace();
+						}
+						runVLCStatus();
+					});
 					break;
 
 				case GRASS_PLAYER_STOP:
@@ -145,10 +151,10 @@ public enum SpeechControl {
 					break;
 
 				case VOLUME_UP:
-					executeCommand(s, -1.88E8, -7.60E8, score, () -> VolumeControl.increaseVolume());
+					executeCommand(s, -1.88E8, -7.60E8, score, () -> CmdControl.callNnircmd("changesysvolume 2000"));
 					break;
 				case VOLUME_DOWN:
-					executeCommand(s, -1.36E8, -7.60E8, score, () -> VolumeControl.dereaseVolume());
+					executeCommand(s, -1.36E8, -7.60E8, score, () -> CmdControl.callNnircmd("changesysvolume -2000"));
 					break;
 
 				case GRASS_PLAYER_START_SHUFFLE:
@@ -159,7 +165,7 @@ public enum SpeechControl {
 					break;
 
 				case GRASS_PLAYER_STATUS:
-					executeCommand(s, -1.00E8, -7.50E8, score, createStatusCommand());
+					executeCommand(s, -1.00E8, -7.50E8, score, () -> runVLCStatus());
 					break;
 
 				case OPEN_HW:
@@ -167,7 +173,7 @@ public enum SpeechControl {
 							() -> CmdControl.openChrome("https://www.gattserver.cz/hw"));
 					break;
 				case OPEN_GRASS:
-					executeCommand(s, -3.20E8, -5.70E8, score,
+					executeCommand(s, -2.70E8, -5.00E8, score,
 							() -> CmdControl.openChrome("https://www.gattserver.cz"));
 					break;
 				case OPEN_NEXUS:

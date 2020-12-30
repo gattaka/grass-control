@@ -21,4 +21,17 @@ public enum CmdControl {
 		}
 	}
 
+	/**
+	 * Vyžaduje http://www.nirsoft.net/utils/nircmd.html na PATH
+	 */
+	public static void callNnircmd(String cmd) {
+		String command = "start nircmd " + cmd;
+		ProcessBuilder pb = new ProcessBuilder("cmd.exe", "/c", command);
+		try {
+			pb.start();
+		} catch (IOException e) {
+			logger.error("Command '" + command + "' failed", e);
+		}
+	}
+
 }
