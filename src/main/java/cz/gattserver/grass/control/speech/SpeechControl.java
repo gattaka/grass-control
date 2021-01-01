@@ -181,7 +181,7 @@ public enum SpeechControl {
 							() -> CmdControl.openChrome("https://www.gattserver.cz:8843"));
 					break;
 				case SYSTEM_MONITOR:
-					executeCommand(s, -2.93E8, -5.40E8, score,
+					executeCommand(s, -2.93E8, -5.00E8, score,
 							() -> CmdControl.openChrome("https://www.gattserver.cz/system-monitor"));
 					break;
 				case SPEECH_HISTORY:

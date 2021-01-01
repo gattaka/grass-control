@@ -2,6 +2,7 @@ package cz.gattserver.grass.control.ui;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +18,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableColumn.SortType;
 import javafx.scene.control.TableView;
 import javafx.scene.image.Image;
 import javafx.scene.layout.GridPane;
@@ -40,9 +42,11 @@ public class HistoryWindow {
 		TableView<SpeechLogTO> table = new TableView<>();
 
 		TableColumn<SpeechLogTO, String> timeCol = new TableColumn<>("Čas");
-		timeCol.setMinWidth(100);
-		SimpleDateFormat sdf = new SimpleDateFormat("HH:mm dd.MM.yyyy");
+		timeCol.setMinWidth(120);
+		SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss dd.MM.yyyy");
 		timeCol.setCellValueFactory(p -> new SimpleStringProperty(sdf.format(p.getValue().getTime())));
+		timeCol.setSortable(true);
+		timeCol.setSortType(SortType.DESCENDING);
 		table.getColumns().add(timeCol);
 
 		TableColumn<SpeechLogTO, String> commandCol = new TableColumn<>("Příkaz");
@@ -90,7 +94,10 @@ public class HistoryWindow {
 	}
 
 	private static void populateTable(TableView<SpeechLogTO> table) {
-		ObservableList<SpeechLogTO> data = FXCollections.observableArrayList(SpeechControl.getHistory());
+		List<SpeechLogTO> log = SpeechControl.getHistory();
+		ObservableList<SpeechLogTO> data = FXCollections.observableArrayList(log);
 		table.setItems(data);
+		// musí být až po populate
+		table.getSortOrder().add(table.getColumns().iterator().next());
 	}
 }

@@ -25,11 +25,11 @@
 	<property name="acousticLookaheadWeight" value="1.7" />
 	<property name="phoneticBeam" value="1e-12" />
 
-	<property name="oogProbability" value="1e-30" />
+	<!-- <property name="oogProbability" value="1e-30" /> -->
 	<property name="oogLoopProbability" value="1e-10" />
 
 	<!-- https://sourceforge.net/p/cmusphinx/discussion/sphinx4/thread/69cbc4eb/?limit=25 -->
-	<!-- <property name="oogProbability" value="2e-30" /> -->
+	<property name="oogProbability" value="3e-29" />
 
 	<property name="languageWeight" value="8.0" />
 
