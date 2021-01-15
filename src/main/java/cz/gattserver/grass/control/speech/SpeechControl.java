@@ -31,25 +31,30 @@ public enum SpeechControl {
 	private static final String GRAMMAR_PATH = "resource:/gram/";
 	private static final String LANGUAGE_MODEL = "resource:/edu/cmu/sphinx/models/en-us/en-us.lm.bin";
 
-	private static final String VOLUME_UP = "grass control volume up";
-	private static final String VOLUME_DOWN = "grass control volume down";
+	private static final String GRASS_CONTROL = "grass control";
 
-	private static final String GRASS_PLAYER_NEXT = "grass control player next";
-	private static final String GRASS_PLAYER_PREVIOUS = "grass control player previous";
-	private static final String GRASS_PLAYER_STOP = "grass control player stop";
-	private static final String GRASS_PLAYER_PLAY = "grass control player play";
-	private static final String GRASS_PLAYER_START_SHUFFLE = "grass control player start shuffle";
-	private static final String GRASS_PLAYER_STOP_SHUFFLE = "grass control player stop shuffle";
-	private static final String GRASS_PLAYER_STATUS = "grass control player status";
+	private static final String VOLUME_UP = "volume up";
+	private static final String VOLUME_DOWN = "volume down";
 
-	private static final String OPEN_HW = "grass control open hardware";
-	private static final String OPEN_GRASS = "grass control open grass";
-	private static final String OPEN_NEXUS = "grass control open nexus";
-	private static final String SYSTEM_MONITOR = "grass control open system monitor";
-	private static final String SPEECH_HISTORY = "grass control open speech history";
+	private static final String PLAYER_NEXT = "player next";
+	private static final String PLAYER_PREVIOUS = "player previous";
+	private static final String PLAYER_STOP = "player stop";
+	private static final String PLAYER_PLAY = "player play";
+	private static final String PLAYER_START_SHUFFLE = "player start shuffle";
+	private static final String PLAYER_STOP_SHUFFLE = "player stop shuffle";
+	private static final String PLAYER_STATUS = "player status";
+
+	private static final String OPEN_HW = "open hardware";
+	private static final String OPEN_GRASS = "open grass";
+	private static final String OPEN_NEXUS = "open nexus";
+	private static final String SYSTEM_MONITOR = "open system monitor";
+	private static final String SPEECH_HISTORY = "open speech history";
 
 	private volatile boolean running = false;
 	private volatile boolean enabled = true;
+
+	private volatile boolean ready = false;
+	private volatile long readyTime = 0;
 
 	private static List<SpeechLogTO> history = new ArrayList<>();
 
@@ -105,6 +110,12 @@ public enum SpeechControl {
 		logger.info("Speech recognition initialized");
 		while (running) {
 			while ((result = recognizer.getResult()) != null) {
+
+				if (ready && (System.currentTimeMillis() - readyTime) > 10000) {
+					ready = false;
+					logger.info("Speech window closed");
+				}
+
 				String s = result.getHypothesis();
 				if ("<unk>".equals(s) || "".equals(s))
 					continue;
@@ -115,8 +126,19 @@ public enum SpeechControl {
 				// zadávání, tím lepší skore)
 				logger.info("You said: '" + s + "' (score " + score + ")");
 
+				if (!ready && GRASS_CONTROL.equals(s)) {
+					executeCommand(s, -1.00E8, -8.70E8, score, () -> {
+						ready = true;
+						logger.info("Speech window opened");
+					});
+					continue;
+				}
+
+				if (!ready)
+					continue;
+
 				switch (s) {
-				case GRASS_PLAYER_NEXT:
+				case PLAYER_NEXT:
 					executeCommand(s, -1.00E8, -5.70E8, score, () -> {
 						VLCControl.sendCommand(VLCCommand.NEXT);
 						// Musí se počkat, jinak se bude vypisovat ještě
@@ -129,7 +151,7 @@ public enum SpeechControl {
 						runVLCStatus();
 					});
 					break;
-				case GRASS_PLAYER_PREVIOUS:
+				case PLAYER_PREVIOUS:
 					executeCommand(s, -1.00E8, -6.00E8, score, () -> {
 						// Musí se počkat, jinak se bude vypisovat ještě
 						// aktuální položka
@@ -143,49 +165,49 @@ public enum SpeechControl {
 					});
 					break;
 
-				case GRASS_PLAYER_STOP:
+				case PLAYER_STOP:
 					executeCommand(s, -1.00E8, -8.70E8, score, () -> VLCControl.sendCommand(VLCCommand.PAUSE));
 					break;
-				case GRASS_PLAYER_PLAY:
-					executeCommand(s, -2.40E8, -5.90E8, score, () -> VLCControl.sendCommand(VLCCommand.PLAY));
+				case PLAYER_PLAY:
+					executeCommand(s, -1.20E8, -5.90E8, score, () -> VLCControl.sendCommand(VLCCommand.PLAY));
 					break;
 
 				case VOLUME_UP:
-					executeCommand(s, -1.88E8, -7.60E8, score, () -> CmdControl.callNnircmd("changesysvolume 2000"));
+					executeCommand(s, -1.40E8, -7.60E8, score, () -> CmdControl.callNnircmd("changesysvolume 3000"));
 					break;
 				case VOLUME_DOWN:
-					executeCommand(s, -1.36E8, -7.60E8, score, () -> CmdControl.callNnircmd("changesysvolume -2000"));
+					executeCommand(s, -1.36E8, -7.60E8, score, () -> CmdControl.callNnircmd("changesysvolume -3000"));
 					break;
 
-				case GRASS_PLAYER_START_SHUFFLE:
-					executeCommand(s, -3.10E8, -9.50E8, score, () -> VLCControl.sendCommand(VLCCommand.RANDOM_ON));
+				case PLAYER_START_SHUFFLE:
+					executeCommand(s, -2.30E8, -9.50E8, score, () -> VLCControl.sendCommand(VLCCommand.RANDOM_ON));
 					break;
-				case GRASS_PLAYER_STOP_SHUFFLE:
-					executeCommand(s, -2.80E8, -7.80E8, score, () -> VLCControl.sendCommand(VLCCommand.RANDOM_OFF));
+				case PLAYER_STOP_SHUFFLE:
+					executeCommand(s, -2.30E8, -7.80E8, score, () -> VLCControl.sendCommand(VLCCommand.RANDOM_OFF));
 					break;
 
-				case GRASS_PLAYER_STATUS:
+				case PLAYER_STATUS:
 					executeCommand(s, -1.00E8, -7.50E8, score, () -> runVLCStatus());
 					break;
 
 				case OPEN_HW:
-					executeCommand(s, -2.40E8, -4.13E8, score,
+					executeCommand(s, -1.90E8, -4.13E8, score,
 							() -> CmdControl.openChrome("https://www.gattserver.cz/hw"));
 					break;
 				case OPEN_GRASS:
-					executeCommand(s, -2.70E8, -5.00E8, score,
+					executeCommand(s, -1.60E8, -5.00E8, score,
 							() -> CmdControl.openChrome("https://www.gattserver.cz"));
 					break;
 				case OPEN_NEXUS:
-					executeCommand(s, -2.59E8, -5.40E8, score,
+					executeCommand(s, -1.80E8, -5.40E8, score,
 							() -> CmdControl.openChrome("https://www.gattserver.cz:8843"));
 					break;
 				case SYSTEM_MONITOR:
-					executeCommand(s, -2.93E8, -5.00E8, score,
+					executeCommand(s, -2.30E8, -5.00E8, score,
 							() -> CmdControl.openChrome("https://www.gattserver.cz/system-monitor"));
 					break;
 				case SPEECH_HISTORY:
-					executeCommand(s, -2.59E8, -5.40E8, score, HistoryWindow::create);
+					executeCommand(s, -2.10E8, -5.40E8, score, HistoryWindow::create);
 					break;
 				}
 			}
@@ -203,6 +225,7 @@ public enum SpeechControl {
 			history.add(new SpeechLogTO(new Date(), text, score, true));
 			TrayControl.showMessage(text + " (score " + score + ")");
 			logger.info("Score in range");
+			readyTime = System.currentTimeMillis();
 			try {
 				command.execute();
 			} catch (Exception e) {

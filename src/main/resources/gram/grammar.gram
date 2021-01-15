@@ -1,10 +1,12 @@
 #JSGF V1.0;
 
 grammar all;
-public <commands> = grass control (open <targets> | <vlc-commands> | volume (up | down));
-<targets> = (grass | nexus | hardware | articles | system monitor | speech history);
+public <intro> = grass control;
+public <commands> = open <targets> | <vlc-commands> | volume (up | down);
+<targets> = grass | nexus | hardware | articles | system monitor | speech history;
 <vlc-commands> = player (next | previous | stop | play | (start | stop) shuffle | status);
 
+/*
 public <misc-player> = payer | prayer;
 
 public <misc-next> = sex | flex | text | test | eggs;
@@ -22,3 +24,4 @@ public <misc-open> = oven;
 public <misc-nexus> = us;
 public <misc-hardware> = spare;
 public <misc-articles> = miss;
+*/
