@@ -31,7 +31,7 @@ public enum SpeechControl {
 	private static final String GRAMMAR_PATH = "resource:/gram/";
 	private static final String LANGUAGE_MODEL = "resource:/edu/cmu/sphinx/models/en-us/en-us.lm.bin";
 
-	private static final String GRASS_CONTROL = "grass control";
+	// private static final String GRASS_CONTROL = "grass control";
 
 	private static final String VOLUME_UP = "volume up";
 	private static final String VOLUME_DOWN = "volume down";
@@ -53,8 +53,8 @@ public enum SpeechControl {
 	private volatile boolean running = false;
 	private volatile boolean enabled = true;
 
-	private volatile boolean ready = false;
-	private volatile long readyTime = 0;
+	// private volatile boolean ready = false;
+	// private volatile long readyTime = 0;
 
 	private static List<SpeechLogTO> history = new ArrayList<>();
 
@@ -111,31 +111,33 @@ public enum SpeechControl {
 		while (running) {
 			while ((result = recognizer.getResult()) != null) {
 
-				if (ready && (System.currentTimeMillis() - readyTime) > 10000) {
-					ready = false;
-					logger.info("Speech window closed");
-				}
+				// if (ready && (System.currentTimeMillis() - readyTime) >
+				// 10000) {
+				// ready = false;
+				// logger.info("Speech window closed");
+				// }
 
-				String s = result.getHypothesis();
+				Token bestToken = result.getResult().getBestFinalToken();
+				String s = bestToken.getWordPathNoFiller();
+				Float score = bestToken == null ? null : bestToken.getScore();
+
 				if ("<unk>".equals(s) || "".equals(s))
 					continue;
-				Token bestToken = result.getResult().getBestFinalToken();
-				Float score = bestToken == null ? null : bestToken.getScore();
 
 				// Vypadá to, že čím lepší frázování (oddělení slov při
 				// zadávání, tím lepší skore)
 				logger.info("You said: '" + s + "' (score " + score + ")");
 
-				if (!ready && GRASS_CONTROL.equals(s)) {
-					executeCommand(s, -1.00E8, -8.70E8, score, () -> {
-						ready = true;
-						logger.info("Speech window opened");
-					});
-					continue;
-				}
-
-				if (!ready)
-					continue;
+				// if (!ready && GRASS_CONTROL.equals(s)) {
+				// executeCommand(s, -1.00E8, -8.70E8, score, () -> {
+				// ready = true;
+				// logger.info("Speech window opened");
+				// });
+				// continue;
+				// }
+				//
+				// if (!ready)
+				// continue;
 
 				switch (s) {
 				case PLAYER_NEXT:
@@ -173,10 +175,10 @@ public enum SpeechControl {
 					break;
 
 				case VOLUME_UP:
-					executeCommand(s, -1.40E8, -7.60E8, score, () -> CmdControl.callNnircmd("changesysvolume 3000"));
+					executeCommand(s, -1.40E8, -7.60E8, score, () -> CmdControl.callNnircmd("changesysvolume 5000"));
 					break;
 				case VOLUME_DOWN:
-					executeCommand(s, -1.36E8, -7.60E8, score, () -> CmdControl.callNnircmd("changesysvolume -3000"));
+					executeCommand(s, -1.36E8, -7.60E8, score, () -> CmdControl.callNnircmd("changesysvolume -5000"));
 					break;
 
 				case PLAYER_START_SHUFFLE:
@@ -191,7 +193,7 @@ public enum SpeechControl {
 					break;
 
 				case OPEN_HW:
-					executeCommand(s, -1.90E8, -4.13E8, score,
+					executeCommand(s, -1.60E8, -4.13E8, score,
 							() -> CmdControl.openChrome("https://www.gattserver.cz/hw"));
 					break;
 				case OPEN_GRASS:
@@ -199,11 +201,11 @@ public enum SpeechControl {
 							() -> CmdControl.openChrome("https://www.gattserver.cz"));
 					break;
 				case OPEN_NEXUS:
-					executeCommand(s, -1.80E8, -5.40E8, score,
+					executeCommand(s, -1.60E8, -5.40E8, score,
 							() -> CmdControl.openChrome("https://www.gattserver.cz:8843"));
 					break;
 				case SYSTEM_MONITOR:
-					executeCommand(s, -2.30E8, -5.00E8, score,
+					executeCommand(s, -2.10E8, -5.00E8, score,
 							() -> CmdControl.openChrome("https://www.gattserver.cz/system-monitor"));
 					break;
 				case SPEECH_HISTORY:
@@ -225,7 +227,7 @@ public enum SpeechControl {
 			history.add(new SpeechLogTO(new Date(), text, score, true));
 			TrayControl.showMessage(text + " (score " + score + ")");
 			logger.info("Score in range");
-			readyTime = System.currentTimeMillis();
+			// readyTime = System.currentTimeMillis();
 			try {
 				command.execute();
 			} catch (Exception e) {
