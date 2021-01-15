@@ -2,6 +2,7 @@ package cz.gattserver.grass.control.ui;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -10,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import cz.gattserver.grass.control.speech.SpeechControl;
 import cz.gattserver.grass.control.speech.SpeechLogTO;
 import javafx.application.Platform;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -17,12 +19,15 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableColumn.SortType;
 import javafx.scene.control.TableView;
 import javafx.scene.image.Image;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
+import javafx.util.Callback;
 
 public class HistoryWindow {
 
@@ -41,10 +46,29 @@ public class HistoryWindow {
 
 		TableView<SpeechLogTO> table = new TableView<>();
 
-		TableColumn<SpeechLogTO, String> timeCol = new TableColumn<>("Čas");
+		TableColumn<SpeechLogTO, Date> timeCol = new TableColumn<>("Čas");
 		timeCol.setMinWidth(120);
-		SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss dd.MM.yyyy");
-		timeCol.setCellValueFactory(p -> new SimpleStringProperty(sdf.format(p.getValue().getTime())));
+		timeCol.setCellValueFactory(p -> new SimpleObjectProperty<Date>(p.getValue().getTime()));
+		// https://stackoverflow.com/a/38967170
+		timeCol.setCellFactory(new Callback<TableColumn<SpeechLogTO, Date>, TableCell<SpeechLogTO, Date>>() {
+
+			@Override
+			public TableCell<SpeechLogTO, Date> call(TableColumn<SpeechLogTO, Date> param) {
+				return new TableCell<SpeechLogTO, Date>() {
+					@Override
+					protected void updateItem(Date item, boolean empty) {
+						super.updateItem(item, empty);
+						if (item == null || empty) {
+							setGraphic(null);
+						} else {
+							SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss dd.MM.yyyy");
+							setGraphic(new Label(sdf.format(item)));
+						}
+					}
+				};
+			}
+
+		});
 		timeCol.setSortable(true);
 		timeCol.setSortType(SortType.DESCENDING);
 		table.getColumns().add(timeCol);
