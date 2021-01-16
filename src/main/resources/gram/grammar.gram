@@ -2,7 +2,7 @@
 
 grammar all;
 public <intro> = grass control;
-public <commands> = open <targets> | <vlc-commands> | volume (up | down);
+public <commands> = <intro> (open <targets> | <vlc-commands> | volume (up | down));
 <targets> = grass | nexus | hardware | articles | system monitor | speech history;
 <vlc-commands> = player (next | previous | stop | play | (start | stop) shuffle | status);
 

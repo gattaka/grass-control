@@ -31,24 +31,26 @@ public enum SpeechControl {
 	private static final String GRAMMAR_PATH = "resource:/gram/";
 	private static final String LANGUAGE_MODEL = "resource:/edu/cmu/sphinx/models/en-us/en-us.lm.bin";
 
-	// private static final String GRASS_CONTROL = "grass control";
+	private static final String GRASS_CONTROL = "grass control";
 
-	private static final String VOLUME_UP = "volume up";
-	private static final String VOLUME_DOWN = "volume down";
+	private static final String PREFIX = GRASS_CONTROL + " ";
 
-	private static final String PLAYER_NEXT = "player next";
-	private static final String PLAYER_PREVIOUS = "player previous";
-	private static final String PLAYER_STOP = "player stop";
-	private static final String PLAYER_PLAY = "player play";
-	private static final String PLAYER_START_SHUFFLE = "player start shuffle";
-	private static final String PLAYER_STOP_SHUFFLE = "player stop shuffle";
-	private static final String PLAYER_STATUS = "player status";
+	private static final String VOLUME_UP = PREFIX + "volume up";
+	private static final String VOLUME_DOWN = PREFIX + "volume down";
 
-	private static final String OPEN_HW = "open hardware";
-	private static final String OPEN_GRASS = "open grass";
-	private static final String OPEN_NEXUS = "open nexus";
-	private static final String SYSTEM_MONITOR = "open system monitor";
-	private static final String SPEECH_HISTORY = "open speech history";
+	private static final String PLAYER_NEXT = PREFIX + "player next";
+	private static final String PLAYER_PREVIOUS = PREFIX + "player previous";
+	private static final String PLAYER_STOP = PREFIX + "player stop";
+	private static final String PLAYER_PLAY = PREFIX + "player play";
+	private static final String PLAYER_START_SHUFFLE = PREFIX + "player start shuffle";
+	private static final String PLAYER_STOP_SHUFFLE = PREFIX + "player stop shuffle";
+	private static final String PLAYER_STATUS = PREFIX + "player status";
+
+	private static final String OPEN_HW = PREFIX + "open hardware";
+	private static final String OPEN_GRASS = PREFIX + "open grass";
+	private static final String OPEN_NEXUS = PREFIX + "open nexus";
+	private static final String SYSTEM_MONITOR = PREFIX + "open system monitor";
+	private static final String SPEECH_HISTORY = PREFIX + "open speech history";
 
 	private volatile boolean running = false;
 	private volatile boolean enabled = true;
@@ -111,15 +113,13 @@ public enum SpeechControl {
 		while (running) {
 			while ((result = recognizer.getResult()) != null) {
 
-				// if (ready && (System.currentTimeMillis() - readyTime) >
-				// 10000) {
-				// ready = false;
-				// logger.info("Speech window closed");
-				// }
-
 				Token bestToken = result.getResult().getBestFinalToken();
+				if (bestToken == null)
+					continue;
+
 				String s = bestToken.getWordPathNoFiller();
-				Float score = bestToken == null ? null : bestToken.getScore();
+				ScoreTO score = new ScoreTO(bestToken.getScore(), bestToken.getAcousticScore(),
+						bestToken.getLanguageScore());
 
 				if ("<unk>".equals(s) || "".equals(s))
 					continue;
@@ -127,17 +127,6 @@ public enum SpeechControl {
 				// Vypadá to, že čím lepší frázování (oddělení slov při
 				// zadávání, tím lepší skore)
 				logger.info("You said: '" + s + "' (score " + score + ")");
-
-				// if (!ready && GRASS_CONTROL.equals(s)) {
-				// executeCommand(s, -1.00E8, -8.70E8, score, () -> {
-				// ready = true;
-				// logger.info("Speech window opened");
-				// });
-				// continue;
-				// }
-				//
-				// if (!ready)
-				// continue;
 
 				switch (s) {
 				case PLAYER_NEXT:
@@ -217,14 +206,14 @@ public enum SpeechControl {
 		recognizer.stopRecognition();
 	}
 
-	private void executeCommand(String text, double fromScore, double toScore, Float score, Command command) {
+	private void executeCommand(String text, double fromScore, double toScore, ScoreTO score, Command command) {
 		logger.info("You said: '" + text + "' (score " + score + ")");
 		if (!enabled) {
 			String msg = "Speech recognition is disabled";
 			TrayControl.showMessage(msg);
 			logger.info(msg);
-		} else if (score <= fromScore && score >= toScore) {
-			history.add(new SpeechLogTO(new Date(), text, score, true));
+		} else if (score.getSelectedScore() <= fromScore && score.getSelectedScore() >= toScore) {
+			history.add(new SpeechLogTO(new Date(), text, score.getSelectedScore(), true));
 			TrayControl.showMessage(text + " (score " + score + ")");
 			logger.info("Score in range");
 			// readyTime = System.currentTimeMillis();
@@ -237,7 +226,7 @@ public enum SpeechControl {
 			}
 		} else {
 			logger.info("Score out of range");
-			history.add(new SpeechLogTO(new Date(), text, score, false));
+			history.add(new SpeechLogTO(new Date(), text, score.getSelectedScore(), false));
 		}
 	}
 

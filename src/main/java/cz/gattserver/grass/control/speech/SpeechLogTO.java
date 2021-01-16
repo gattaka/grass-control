@@ -6,10 +6,10 @@ public class SpeechLogTO {
 
 	private Date time;
 	private String command;
-	private float score;
+	private Float score;
 	private boolean inRange;
 
-	public SpeechLogTO(Date time, String command, float score, boolean inRange) {
+	public SpeechLogTO(Date time, String command, Float score, boolean inRange) {
 		super();
 		this.time = time;
 		this.command = command;
@@ -25,7 +25,7 @@ public class SpeechLogTO {
 		return command;
 	}
 
-	public float getScore() {
+	public Float getScore() {
 		return score;
 	}
 
