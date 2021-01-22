@@ -56,6 +56,10 @@ public enum TrayControl {
 		historyItem.addActionListener(e -> HistoryWindow.create());
 		popup.add(historyItem);
 
+		MenuItem musicItem = new MenuItem("Vyhledávání hudby");
+		musicItem.addActionListener(e -> MusicSearchWindow.create());
+		popup.add(musicItem);
+
 		popup.addSeparator();
 		MenuItem exitItem = new MenuItem("Ukončit");
 		exitItem.addActionListener(l -> System.exit(0));

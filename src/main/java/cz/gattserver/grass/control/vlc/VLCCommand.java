@@ -55,7 +55,17 @@ public enum VLCCommand {
 	/**
 	 * Status
 	 */
-	STATUS("status");
+	STATUS("status"),
+
+	/**
+	 * Add
+	 */
+	ADD("add"),
+
+	/**
+	 * Clear
+	 */
+	CLEAR("clear");
 
 	private String signalName;
 

@@ -25,11 +25,11 @@ public enum VLCControl {
 		}
 	}
 
-	public static void sendCommand(VLCCommand command) {
+	public static void sendCommand(VLCCommand command, String... params) {
 		if (vlc == null)
 			connect();
 		try {
-			vlc.sendCommand(command);
+			vlc.sendCommand(command, params);
 		} catch (IOException e1) {
 			logger.error("SendCommand failed -- trying reconnect");
 			try {
@@ -41,7 +41,7 @@ public enum VLCControl {
 			// zkus vytvořit nové spojení
 			connect();
 			try {
-				vlc.sendCommand(command);
+				vlc.sendCommand(command, params);
 			} catch (IOException ee) {
 				// pokud ani s novým spojením příkaz opět nejde, vzdej to
 				throw new IllegalStateException("SendCommand failed (after reconnect)", ee);
