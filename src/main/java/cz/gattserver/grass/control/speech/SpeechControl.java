@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import cz.gattserver.grass.control.system.CmdControl;
 import cz.gattserver.grass.control.ui.HistoryWindow;
 import cz.gattserver.grass.control.ui.MessageLevel;
+import cz.gattserver.grass.control.ui.MusicSearchWindow;
 import cz.gattserver.grass.control.ui.TrayControl;
 import cz.gattserver.grass.control.vlc.VLCCommand;
 import cz.gattserver.grass.control.vlc.VLCControl;
@@ -46,11 +47,12 @@ public enum SpeechControl {
 	private static final String PLAYER_STOP_SHUFFLE = PREFIX + "player stop shuffle";
 	private static final String PLAYER_STATUS = PREFIX + "player status";
 
+	private static final String OPEN_MUSIC = PREFIX + "open music";
 	private static final String OPEN_HW = PREFIX + "open hardware";
 	private static final String OPEN_GRASS = PREFIX + "open grass";
 	private static final String OPEN_NEXUS = PREFIX + "open nexus";
-	private static final String SYSTEM_MONITOR = PREFIX + "open system monitor";
-	private static final String SPEECH_HISTORY = PREFIX + "open speech history";
+	private static final String OPEN_SYSTEM_MONITOR = PREFIX + "open system monitor";
+	private static final String OPEN_SPEECH_HISTORY = PREFIX + "open speech history";
 
 	private volatile boolean running = false;
 	private volatile boolean enabled = true;
@@ -194,12 +196,15 @@ public enum SpeechControl {
 					executeCommand(s, -1.60E8, -5.40E8, score,
 							() -> CmdControl.openChrome("https://www.gattserver.cz:8843"));
 					break;
-				case SYSTEM_MONITOR:
+				case OPEN_SYSTEM_MONITOR:
 					executeCommand(s, -2.10E8, -5.00E8, score,
 							() -> CmdControl.openChrome("https://www.gattserver.cz/system-monitor"));
 					break;
-				case SPEECH_HISTORY:
+				case OPEN_SPEECH_HISTORY:
 					executeCommand(s, -2.10E8, -5.40E8, score, HistoryWindow::create);
+					break;
+				case OPEN_MUSIC:
+					executeCommand(s, -2.10E8, -5.40E8, score, MusicSearchWindow::create);
 					break;
 				}
 			}

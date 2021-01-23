@@ -32,6 +32,9 @@ public class Message {
 
 	private static final int DELAY = 10000;
 
+	private Message() {
+	}
+
 	public static float toPerc(int value) {
 		return value / 255f;
 	}
