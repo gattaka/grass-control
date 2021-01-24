@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
 
 import cz.gattserver.grass.control.bluetooth.BluetoothControl;
 import cz.gattserver.grass.control.speech.SpeechControl;
-import cz.gattserver.grass.control.ui.TrayControl;
+import cz.gattserver.grass.control.ui.common.TrayControl;
 import javafx.application.Application;
 import javafx.stage.Stage;
 

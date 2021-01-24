@@ -11,6 +11,7 @@ import javax.microedition.io.StreamConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import cz.gattserver.grass.control.system.CmdControl;
 import cz.gattserver.grass.control.vlc.VLCCommand;
 import cz.gattserver.grass.control.vlc.VLCControl;
 
@@ -117,10 +118,10 @@ public enum BluetoothControl {
 			VLCControl.sendCommand(VLCCommand.PREV);
 			break;
 		case 0x83:
-			VLCControl.sendCommand(VLCCommand.VOLUP);
+			CmdControl.callNnircmd("changesysvolume 5000");
 			break;
 		case 0x84:
-			VLCControl.sendCommand(VLCCommand.VOLDOWN);
+			CmdControl.callNnircmd("changesysvolume -5000");
 			break;
 		}
 	}

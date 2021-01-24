@@ -9,8 +9,8 @@ import org.apache.commons.net.telnet.TelnetClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import cz.gattserver.grass.control.ui.MessageLevel;
-import cz.gattserver.grass.control.ui.TrayControl;
+import cz.gattserver.grass.control.ui.common.MessageLevel;
+import cz.gattserver.grass.control.ui.common.TrayControl;
 
 /**
  * Exposes control of VLC media player (videolan.org) from java. VLC must be set

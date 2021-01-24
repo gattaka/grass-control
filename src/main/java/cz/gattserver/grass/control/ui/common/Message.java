@@ -1,4 +1,4 @@
-package cz.gattserver.grass.control.ui;
+package cz.gattserver.grass.control.ui.common;
 
 import java.awt.Dimension;
 import java.awt.Toolkit;

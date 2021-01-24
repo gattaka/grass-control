@@ -32,15 +32,15 @@ public enum VLCCommand {
 	 */
 	QUIT("quit"),
 
-	/**
-	 * Volume down
-	 */
-	VOLDOWN("voldown 2"),
-
-	/**
-	 * Volume up
-	 */
-	VOLUP("volup 2"),
+	// /**
+	// * Volume down
+	// */
+	// VOLDOWN("voldown 2"),
+	//
+	// /**
+	// * Volume up
+	// */
+	// VOLUP("volup 2"),
 
 	/**
 	 * Random on

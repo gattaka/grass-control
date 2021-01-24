@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import cz.gattserver.grass.control.speech.SpeechControl;
 import cz.gattserver.grass.control.speech.SpeechLogTO;
+import cz.gattserver.grass.control.ui.common.TrayControl;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;

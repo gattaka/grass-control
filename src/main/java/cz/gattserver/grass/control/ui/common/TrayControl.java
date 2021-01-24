@@ -1,4 +1,4 @@
-package cz.gattserver.grass.control.ui;
+package cz.gattserver.grass.control.ui.common;
 
 import java.awt.AWTException;
 import java.awt.CheckboxMenuItem;
@@ -17,6 +17,8 @@ import org.slf4j.LoggerFactory;
 
 import cz.gattserver.grass.control.Main;
 import cz.gattserver.grass.control.speech.SpeechControl;
+import cz.gattserver.grass.control.ui.HistoryWindow;
+import cz.gattserver.grass.control.ui.MusicSearchWindow;
 
 public enum TrayControl {
 
