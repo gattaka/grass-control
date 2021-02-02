@@ -49,6 +49,7 @@ public class MusicSearchWindow {
 		Stage stage = new Stage();
 		stage.setTitle("Vyhledávání hudby");
 		stage.setHeight(500);
+		stage.setHeight(800);
 
 		TableView<Path> table = new TableView<>();
 		GridPane.setHgrow(table, Priority.ALWAYS);
@@ -141,21 +142,29 @@ public class MusicSearchWindow {
 	private static void populateTable(TableView<Path> table, String filter) {
 		Path path = Path.of(ROOT);
 		table.setDisable(true);
-		Platform.runLater(() -> {
-			try {
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
 				List<Path> list = new ArrayList<>();
-				findRecursive(path, filter, list);
-				ObservableList<Path> data = FXCollections.observableArrayList(list);
-				table.setItems(data);
-				// musí být až po populate
-				table.getSortOrder().add(table.getColumns().iterator().next());
-			} catch (IOException e) {
-				String msg = "Nezdařilo se získat přehled adresáře hudby";
-				logger.error(msg, e);
-				TrayControl.showMessage(msg);
+				try {
+
+					findRecursive(path, filter, list);
+				} catch (IOException e) {
+					String msg = "Nezdařilo se získat přehled adresáře hudby";
+					logger.error(msg, e);
+					TrayControl.showMessage(msg);
+				}
+				Platform.runLater(() -> {
+					if (list != null) {
+						ObservableList<Path> data = FXCollections.observableArrayList(list);
+						table.setItems(data);
+						// musí být až po populate
+						table.getSortOrder().add(table.getColumns().iterator().next());
+					}
+					table.setDisable(false);
+				});
 			}
-			table.setDisable(false);
-		});
+		}).start();
 	}
 
 	private static void populateTable(TableView<Path> table) {
