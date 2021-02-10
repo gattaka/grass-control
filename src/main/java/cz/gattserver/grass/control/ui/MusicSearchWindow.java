@@ -14,7 +14,6 @@ import cz.gattserver.grass.control.ui.common.TrayControl;
 import cz.gattserver.grass.control.vlc.VLCCommand;
 import cz.gattserver.grass.control.vlc.VLCControl;
 import javafx.application.Platform;
-import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -25,7 +24,6 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
@@ -38,15 +36,43 @@ import javafx.util.Callback;
 public class MusicSearchWindow {
 
 	private static final Logger logger = LoggerFactory.getLogger(MusicSearchWindow.class);
-
 	private static final Path ROOT = Path.of("d:\\Hudba\\");
+	private static final MusicSearchWindow INSTANCE = new MusicSearchWindow();
 
-	public static void create() {
-		Platform.runLater(MusicSearchWindow::createInPlatform);
+	private boolean initialized = false;
+
+	private Stage stage;
+	private TableView<Path> table;
+	private History<Command> history;
+
+	public static MusicSearchWindow getInstance() {
+		if (!INSTANCE.initialized) {
+			INSTANCE.init();
+			INSTANCE.initialized = true;
+		}
+		return INSTANCE;
 	}
 
-	private static void createInPlatform() {
-		Stage stage = new Stage();
+	public static void showInstance() {
+		getInstance().show();
+	}
+
+	public static void hideInstance() {
+		getInstance().hide();
+	}
+
+	public void show() {
+		Platform.runLater(stage::show);
+	}
+
+	public void hide() {
+		Platform.runLater(stage::hide);
+	}
+
+	private void init() {
+		history = new History<>();
+
+		stage = new Stage();
 		stage.setTitle("Vyhledávání hudby");
 		stage.setHeight(800);
 		stage.setWidth(1200);
@@ -57,52 +83,59 @@ public class MusicSearchWindow {
 		layout.setSpacing(10);
 		Scene scene = new Scene(layout);
 
-		TableView<Path> table = new TableView<>();
-		VBox.setVgrow(table, Priority.ALWAYS);
-
-		table.setRowFactory(tv -> {
-			TableRow<Path> row = new TableRow<>();
-			row.setOnMouseClicked(event -> {
-				if (event.getClickCount() == 2 && (!row.isEmpty())) {
-					Path path = row.getItem();
-					if (Files.isDirectory(path)) {
-						populateTable(table, path);
-					} else {
-						VLCControl.sendCommand(VLCCommand.ADD, path.toString());
-					}
-				}
-			});
-			return row;
-		});
-
 		TextField textField = new TextField();
 
-		EventHandler<ActionEvent> searchHandler = e -> populateTable(table, textField.getText());
+		EventHandler<ActionEvent> searchHandler = e -> {
+			pushAndRunCommand(() -> populateTable(textField.getText()));
+			populateTable(textField.getText());
+		};
 		textField.setOnAction(searchHandler);
+
+		Button backBtn = new Button();
+		backBtn.setText("<");
+		backBtn.setDisable(true);
+
+		Button forwardBtn = new Button();
+		forwardBtn.setText(">");
+		forwardBtn.setDisable(true);
+
+		backBtn.setOnAction(e -> {
+			history.back().run();
+			backBtn.setDisable(history.isFirst());
+			forwardBtn.setDisable(false);
+		});
+
+		forwardBtn.setOnAction(e -> {
+			history.forward().run();
+			forwardBtn.setDisable(history.isLast());
+			backBtn.setDisable(false);
+		});
 
 		Button searchBtn = new Button();
 		searchBtn.setText("Hledat");
 		searchBtn.setOnAction(searchHandler);
 
 		HBox searchLine = new HBox();
-		searchLine.getChildren().addAll(textField, searchBtn);
+		searchLine.getChildren().addAll(backBtn, forwardBtn, textField, searchBtn);
 		searchLine.setSpacing(10);
 		HBox.setHgrow(textField, Priority.ALWAYS);
 		layout.getChildren().add(searchLine);
 
-		TableColumn<Path, String> actionCol = new TableColumn<>("Operace");
-		Callback<TableColumn<Path, String>, TableCell<Path, String>> cellFactory = new Callback<TableColumn<Path, String>, TableCell<Path, String>>() {
+		table = new TableView<>();
+		VBox.setVgrow(table, Priority.ALWAYS);
+
+		TableColumn<Path, String> nameCol = new TableColumn<>("Název");
+		Callback<TableColumn<Path, String>, TableCell<Path, String>> nameColCellFactory = new Callback<TableColumn<Path, String>, TableCell<Path, String>>() {
 			@Override
 			public TableCell<Path, String> call(final TableColumn<Path, String> param) {
 				final TableCell<Path, String> cell = new TableCell<Path, String>() {
 
 					final HBox line = new HBox();
 					final Button playBtn = new Button("Přehrát");
-					final Button playDirBtn = new Button("Přehrát nadřazený adresář");
-					final Button enterDirBtn = new Button("Přejít do adresáře");
+					final Button openBtn = new Button("Otevřít");
 
 					{
-						line.getChildren().addAll(playBtn, playDirBtn, enterDirBtn);
+						line.getChildren().addAll(playBtn, openBtn);
 						line.setSpacing(10);
 						line.setPadding(new Insets(0));
 					}
@@ -116,33 +149,65 @@ public class MusicSearchWindow {
 						} else {
 							Path path = getTableView().getItems().get(getIndex());
 							playBtn.setOnAction(e -> VLCControl.sendCommand(VLCCommand.ADD, path.toString()));
-							playDirBtn.setOnAction(
-									e -> VLCControl.sendCommand(VLCCommand.ADD, path.getParent().toString()));
-							playDirBtn.setDisable(path.getParent().equals(ROOT));
-							enterDirBtn.setOnAction(e -> populateTable(table, path));
-							enterDirBtn.setDisable(!Files.isDirectory(path));
+							openBtn.setOnAction(e -> {
+								pushAndRunCommand(() -> populateTable(path));
+								backBtn.setDisable(false);
+							});
+							openBtn.setDisable(!Files.isDirectory(path));
 							setGraphic(line);
-							setText(null);
+							setText(path.getFileName().toString());
 						}
 					}
 				};
 				return cell;
 			}
 		};
-		actionCol.setCellFactory(cellFactory);
-		table.getColumns().add(actionCol);
-
-		TableColumn<Path, String> nameCol = new TableColumn<>("Název");
-		nameCol.setMinWidth(300);
-		nameCol.setCellValueFactory(p -> new SimpleStringProperty(p.getValue().getFileName().toString()));
+		nameCol.setCellFactory(nameColCellFactory);
+		nameCol.setMinWidth(500);
 		table.getColumns().add(nameCol);
 
-		TableColumn<Path, String> scoreCol = new TableColumn<>("Nadřazený adresář");
-		scoreCol.setMinWidth(500);
-		scoreCol.setCellValueFactory(p -> new SimpleStringProperty(p.getValue().getParent().toString()));
-		table.getColumns().add(scoreCol);
+		TableColumn<Path, String> parentDirCol = new TableColumn<>("Nadřazený adresář");
+		Callback<TableColumn<Path, String>, TableCell<Path, String>> parentDirColCellFactory = new Callback<TableColumn<Path, String>, TableCell<Path, String>>() {
+			@Override
+			public TableCell<Path, String> call(final TableColumn<Path, String> param) {
+				final TableCell<Path, String> cell = new TableCell<Path, String>() {
 
-		populateTable(table);
+					final HBox line = new HBox();
+					final Button playBtn = new Button("Přehrát");
+					final Button openBtn = new Button("Otevřít");
+
+					{
+						line.getChildren().addAll(playBtn, openBtn);
+						line.setSpacing(10);
+						line.setPadding(new Insets(0));
+					}
+
+					@Override
+					public void updateItem(String item, boolean empty) {
+						super.updateItem(item, empty);
+						if (empty) {
+							setGraphic(null);
+							setText(null);
+						} else {
+							Path path = getTableView().getItems().get(getIndex()).getParent();
+							playBtn.setOnAction(e -> VLCControl.sendCommand(VLCCommand.ADD, path.toString()));
+							openBtn.setOnAction(e -> {
+								pushAndRunCommand(() -> populateTable(path));
+								backBtn.setDisable(false);
+							});
+							setGraphic(line);
+							setText(path.getFileName().toString());
+						}
+					}
+				};
+				return cell;
+			}
+		};
+		parentDirCol.setCellFactory(parentDirColCellFactory);
+		parentDirCol.setMinWidth(500);
+		table.getColumns().add(parentDirCol);
+
+		pushAndRunCommand(() -> populateTable(ROOT));
 
 		layout.getChildren().add(table);
 
@@ -162,7 +227,6 @@ public class MusicSearchWindow {
 		buttonLine.getChildren().addAll(clearPlaylistBtn, closeBtn);
 
 		stage.setScene(scene);
-		stage.show();
 
 		try {
 			stage.getIcons().add(new Image(TrayControl.getIconStream()));
@@ -171,7 +235,12 @@ public class MusicSearchWindow {
 		}
 	}
 
-	private static void findRecursive(Path path, String filter, List<Path> results) throws IOException {
+	private void pushAndRunCommand(Command cmd) {
+		cmd.run();
+		history.push(cmd);
+	}
+
+	private void findRecursive(Path path, String filter, List<Path> results) throws IOException {
 		for (Path p : Files.list(path).collect(Collectors.toList())) {
 			if (p.getFileName().toString().toLowerCase().matches(".*" + filter.toLowerCase() + ".*"))
 				results.add(p);
@@ -180,7 +249,7 @@ public class MusicSearchWindow {
 		}
 	}
 
-	private static void populateTable(TableView<Path> table, Path path) {
+	private void populateTable(Path path) {
 		table.setDisable(true);
 		new Thread(new Runnable() {
 			@Override
@@ -206,14 +275,13 @@ public class MusicSearchWindow {
 		}).start();
 	}
 
-	private static void populateTable(TableView<Path> table, String filter) {
+	private void populateTable(String filter) {
 		table.setDisable(true);
 		new Thread(new Runnable() {
 			@Override
 			public void run() {
 				List<Path> list = new ArrayList<>();
 				try {
-
 					findRecursive(ROOT, filter, list);
 				} catch (IOException e) {
 					String msg = "Nezdařilo se získat přehled adresáře hudby";
@@ -231,21 +299,5 @@ public class MusicSearchWindow {
 				});
 			}
 		}).start();
-	}
-
-	private static void populateTable(TableView<Path> table) {
-		List<Path> list;
-		try {
-			list = Files.list(ROOT).collect(Collectors.toList());
-		} catch (IOException e) {
-			String msg = "Nezdařilo se získat přehled adresáře hudby";
-			logger.error(msg, e);
-			TrayControl.showMessage(msg);
-			return;
-		}
-		ObservableList<Path> data = FXCollections.observableArrayList(list);
-		table.setItems(data);
-		// musí být až po populate
-		table.getSortOrder().add(table.getColumns().iterator().next());
 	}
 }

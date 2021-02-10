@@ -59,7 +59,7 @@ public enum TrayControl {
 		popup.add(historyItem);
 
 		MenuItem musicItem = new MenuItem("Vyhledávání hudby");
-		musicItem.addActionListener(e -> MusicSearchWindow.create());
+		musicItem.addActionListener(e -> MusicSearchWindow.showInstance());
 		popup.add(musicItem);
 
 		popup.addSeparator();

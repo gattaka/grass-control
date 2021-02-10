@@ -45,7 +45,7 @@ public class Main extends Application {
 
 		logger.info("GrassControl initialized");
 
-		MusicSearchWindow.create();
+		MusicSearchWindow.showInstance();
 	}
 
 }

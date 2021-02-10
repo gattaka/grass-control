@@ -204,7 +204,7 @@ public enum SpeechControl {
 					executeCommand(s, -2.10E8, -5.40E8, score, HistoryWindow::create);
 					break;
 				case OPEN_MUSIC:
-					executeCommand(s, -2.10E8, -5.40E8, score, MusicSearchWindow::create);
+					executeCommand(s, -2.10E8, -5.40E8, score, MusicSearchWindow::showInstance);
 					break;
 				}
 			}
