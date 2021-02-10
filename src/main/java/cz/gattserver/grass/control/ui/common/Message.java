@@ -1,7 +1,5 @@
 package cz.gattserver.grass.control.ui.common;
 
-import java.awt.Dimension;
-import java.awt.Toolkit;
 import java.io.InputStream;
 
 import org.slf4j.Logger;
@@ -12,7 +10,7 @@ import javafx.application.Platform;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Scene;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
 import javafx.scene.image.Image;
@@ -23,14 +21,14 @@ import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
-import javafx.stage.Stage;
-import javafx.stage.StageStyle;
+import javafx.stage.Popup;
+import javafx.stage.Screen;
 
 public class Message {
 
 	private static final Logger logger = LoggerFactory.getLogger(Message.class);
 
-	private static final int DELAY = 10000;
+	private static final int DELAY = 5000;
 
 	private Message() {
 	}
@@ -50,15 +48,7 @@ public class Message {
 	private static void createInPlatform(String message, MessageLevel level) {
 		logger.trace("MessageWindow '" + message + "' creation started");
 
-		// https://stackoverflow.com/questions/24564136/javafx-can-you-create-a-stage-that-doesnt-show-on-the-task-bar-and-is-undecora
-		Stage primaryStage = new Stage();
-		primaryStage.initStyle(StageStyle.UTILITY);
-		primaryStage.setOpacity(0);
-		primaryStage.show();
-		Stage stage = new Stage();
-		stage.initOwner(primaryStage);
-		stage.initStyle(StageStyle.TRANSPARENT);
-		stage.setAlwaysOnTop(true);
+		Popup popup = new Popup();
 
 		GridPane grid = new GridPane();
 		grid.setAlignment(Pos.CENTER);
@@ -69,8 +59,7 @@ public class Message {
 				new Background(new BackgroundFill(Color.rgb(244, 241, 230, 1), new CornerRadii(3), Insets.EMPTY)));
 		grid.setStyle("-fx-border-color: #aaa;");
 
-		Scene scene = new Scene(grid);
-		stage.setScene(scene);
+		popup.getContent().add(grid);
 
 		Image image = new Image(loadImageStream("favicon.png"));
 		grid.add(new ImageView(image), 0, 0);
@@ -98,40 +87,37 @@ public class Message {
 		grid.add(new Label(message), 1, 2);
 
 		new Thread(() -> {
-			MessageWindowRegister.registerWindow(stage);
+			MessageWindowRegister.registerWindow(popup);
 		}).start();
 
 		new Thread(() -> {
 			try {
 				Thread.sleep(DELAY);
-				while (stage.getOpacity() > 0 && stage.isShowing()) {
-					Platform.runLater(() -> stage.setOpacity(Math.max(stage.getOpacity() - 0.05f, 0)));
+				while (popup.getOpacity() > 0 && popup.isShowing()) {
+					Platform.runLater(() -> popup.setOpacity(Math.max(popup.getOpacity() - 0.05f, 0)));
 					Thread.sleep(50);
 				}
-				Platform.runLater(stage::close);
-				MessageWindowRegister.unregisterWindow(stage);
+				Platform.runLater(popup::hide);
+				MessageWindowRegister.unregisterWindow(popup);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
 		}).start();
 
-		scene.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
+		popup.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
 			@Override
 			public void handle(MouseEvent mouseEvent) {
-				MessageWindowRegister.unregisterWindow(stage);
-				stage.close();
+				MessageWindowRegister.unregisterWindow(popup);
+				popup.hide();
 			}
 		});
 
-		stage.show();
+		Screen screen = Screen.getPrimary();
+		Rectangle2D bounds = screen.getBounds();
 
-		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-		double w = scene.getWidth();
-		double h = scene.getHeight();
-		double x = screenSize.getWidth() - w - 10;
-		double y = screenSize.getHeight() - h - 40;
-		stage.setX(x);
-		stage.setY(y);
+		popup.show(Main.getPrimaryStage());
+		popup.setX(bounds.getWidth() - popup.getWidth() - 10);
+		popup.setY(bounds.getHeight() - popup.getHeight() - 40);
 
 		logger.trace("MessageWindow '" + message + "' creation done");
 	}

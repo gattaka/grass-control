@@ -10,17 +10,32 @@ import cz.gattserver.grass.control.speech.SpeechControl;
 import cz.gattserver.grass.control.ui.common.TrayControl;
 import javafx.application.Application;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 
 public class Main extends Application {
 
 	private static final Logger logger = LoggerFactory.getLogger(Main.class);
 
+	private static Stage primaryStage;
+
+	public static Stage getPrimaryStage() {
+		return primaryStage;
+	}
+	
 	public static void main(String[] args) throws IOException, InterruptedException {
 		launch(args);
 	}
 
 	@Override
-	public void start(Stage primaryStage) throws Exception {
+	public void start(Stage stage) throws Exception {
+		Main.primaryStage = stage;
+		stage.setX(-1);
+		stage.setY(-1);
+		stage.setWidth(1);
+		stage.setHeight(1);
+		stage.initStyle(StageStyle.UTILITY);
+		stage.show();
+
 		TrayControl.INSTANCE.create();
 		BluetoothControl.INSTANCE.start();
 		SpeechControl.INSTANCE.start();
