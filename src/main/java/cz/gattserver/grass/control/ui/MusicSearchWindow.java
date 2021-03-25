@@ -39,37 +39,32 @@ public class MusicSearchWindow {
 	private static final Path ROOT = Path.of("d:\\Hudba\\");
 	private static final MusicSearchWindow INSTANCE = new MusicSearchWindow();
 
-	private boolean initialized = false;
+	private Boolean initialized = false;
 
 	private Stage stage;
 	private TableView<Path> table;
 	private History<Command> history;
 
-	public static MusicSearchWindow getInstance() {
-		if (!INSTANCE.initialized) {
-			INSTANCE.init();
-			INSTANCE.initialized = true;
-		}
-		return INSTANCE;
+	public static void runOnInstance(Runnable cmd) {
+		Platform.runLater(() -> {
+			if (!INSTANCE.initialized)
+				INSTANCE.init();
+			cmd.run();
+		});
 	}
 
 	public static void showInstance() {
-		getInstance().show();
+		runOnInstance(() -> INSTANCE.stage.show());
 	}
 
 	public static void hideInstance() {
-		getInstance().hide();
+		runOnInstance(() -> INSTANCE.stage.hide());
 	}
 
-	public void show() {
-		Platform.runLater(stage::show);
-	}
+	private synchronized void init() {
+		if (initialized)
+			return;
 
-	public void hide() {
-		Platform.runLater(stage::hide);
-	}
-
-	private void init() {
 		history = new History<>();
 
 		stage = new Stage();
@@ -233,6 +228,8 @@ public class MusicSearchWindow {
 		} catch (IOException e1) {
 			logger.error("Icon load failed");
 		}
+
+		initialized = true;
 	}
 
 	private void pushAndRunCommand(Command cmd) {
