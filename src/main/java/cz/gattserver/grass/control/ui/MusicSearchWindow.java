@@ -5,6 +5,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -39,10 +41,12 @@ public class MusicSearchWindow {
 	private static final Path ROOT = Path.of("d:\\Hudba\\");
 	private static final MusicSearchWindow INSTANCE = new MusicSearchWindow();
 
+	private IndexNode index;
+
 	private Boolean initialized = false;
 
 	private Stage stage;
-	private TableView<Path> table;
+	private TableView<IndexNode> table;
 	private History<Command> history;
 
 	public static void runOnInstance(Runnable cmd) {
@@ -119,11 +123,11 @@ public class MusicSearchWindow {
 		table = new TableView<>();
 		VBox.setVgrow(table, Priority.ALWAYS);
 
-		TableColumn<Path, String> nameCol = new TableColumn<>("Název");
-		Callback<TableColumn<Path, String>, TableCell<Path, String>> nameColCellFactory = new Callback<TableColumn<Path, String>, TableCell<Path, String>>() {
+		TableColumn<IndexNode, String> nameCol = new TableColumn<>("Název");
+		Callback<TableColumn<IndexNode, String>, TableCell<IndexNode, String>> nameColCellFactory = new Callback<TableColumn<IndexNode, String>, TableCell<IndexNode, String>>() {
 			@Override
-			public TableCell<Path, String> call(final TableColumn<Path, String> param) {
-				final TableCell<Path, String> cell = new TableCell<Path, String>() {
+			public TableCell<IndexNode, String> call(final TableColumn<IndexNode, String> param) {
+				final TableCell<IndexNode, String> cell = new TableCell<IndexNode, String>() {
 
 					final HBox line = new HBox();
 					final Button playBtn = new Button("Přehrát");
@@ -142,15 +146,15 @@ public class MusicSearchWindow {
 							setGraphic(null);
 							setText(null);
 						} else {
-							Path path = getTableView().getItems().get(getIndex());
-							playBtn.setOnAction(e -> VLCControl.sendCommand(VLCCommand.ADD, path.toString()));
+							IndexNode node = getTableView().getItems().get(getIndex());
+							playBtn.setOnAction(e -> VLCControl.sendCommand(VLCCommand.ADD, node.getPath().toString()));
 							openBtn.setOnAction(e -> {
-								pushAndRunCommand(() -> populateTable(path));
+								pushAndRunCommand(() -> populateTable(node));
 								backBtn.setDisable(false);
 							});
-							openBtn.setDisable(!Files.isDirectory(path));
+							openBtn.setDisable(!node.isDirectory());
 							setGraphic(line);
-							setText(path.getFileName().toString());
+							setText(node.getPathName());
 						}
 					}
 				};
@@ -161,11 +165,11 @@ public class MusicSearchWindow {
 		nameCol.setMinWidth(500);
 		table.getColumns().add(nameCol);
 
-		TableColumn<Path, String> parentDirCol = new TableColumn<>("Nadřazený adresář");
-		Callback<TableColumn<Path, String>, TableCell<Path, String>> parentDirColCellFactory = new Callback<TableColumn<Path, String>, TableCell<Path, String>>() {
+		TableColumn<IndexNode, String> parentDirCol = new TableColumn<>("Nadřazený adresář");
+		Callback<TableColumn<IndexNode, String>, TableCell<IndexNode, String>> parentDirColCellFactory = new Callback<TableColumn<IndexNode, String>, TableCell<IndexNode, String>>() {
 			@Override
-			public TableCell<Path, String> call(final TableColumn<Path, String> param) {
-				final TableCell<Path, String> cell = new TableCell<Path, String>() {
+			public TableCell<IndexNode, String> call(final TableColumn<IndexNode, String> param) {
+				final TableCell<IndexNode, String> cell = new TableCell<IndexNode, String>() {
 
 					final HBox line = new HBox();
 					final Button playBtn = new Button("Přehrát");
@@ -184,14 +188,14 @@ public class MusicSearchWindow {
 							setGraphic(null);
 							setText(null);
 						} else {
-							Path path = getTableView().getItems().get(getIndex()).getParent();
-							playBtn.setOnAction(e -> VLCControl.sendCommand(VLCCommand.ADD, path.toString()));
+							IndexNode node = getTableView().getItems().get(getIndex()).getParentNode();
+							playBtn.setOnAction(e -> VLCControl.sendCommand(VLCCommand.ADD, node.getPath().toString()));
 							openBtn.setOnAction(e -> {
-								pushAndRunCommand(() -> populateTable(path));
+								pushAndRunCommand(() -> populateTable(node));
 								backBtn.setDisable(false);
 							});
 							setGraphic(line);
-							setText(path.getFileName().toString());
+							setText(node.getPathName());
 						}
 					}
 				};
@@ -202,7 +206,9 @@ public class MusicSearchWindow {
 		parentDirCol.setMinWidth(500);
 		table.getColumns().add(parentDirCol);
 
-		pushAndRunCommand(() -> populateTable(ROOT));
+		index = new IndexNode(null, ROOT);
+		buildIndex(index);
+		pushAndRunCommand(() -> populateTable(index));
 
 		layout.getChildren().add(table);
 
@@ -237,36 +243,51 @@ public class MusicSearchWindow {
 		history.push(cmd);
 	}
 
-	private void findRecursive(Path path, String filter, List<Path> results) throws IOException {
+	private void buildIndex(IndexNode node) {
+		try {
+			Files.list(node.getPath()).forEach(p -> {
+				IndexNode newNode = new IndexNode(node, p);
+				node.addSubnode(newNode);
+				if (Files.isDirectory(p))
+					buildIndex(newNode);
+			});
+		} catch (IOException e) {
+			logger.error("Path listing for path " + node.getPath() + " failed", e);
+		}
+	}
+
+	private void findFSRecursive(Path path, String filter, List<Path> results) throws IOException {
 		for (Path p : Files.list(path).collect(Collectors.toList())) {
 			if (p.getFileName().toString().toLowerCase().matches(".*" + filter.toLowerCase() + ".*"))
 				results.add(p);
 			if (Files.isDirectory(p))
-				findRecursive(p, filter, results);
+				findFSRecursive(p, filter, results);
 		}
 	}
 
-	private void populateTable(Path path) {
+	private void findRecursive(IndexNode currentNode, String filter, List<IndexNode> results) throws IOException {
+		for (IndexNode node : currentNode.getSubnodes()) {
+			Pattern pattern = Pattern.compile(".*" + filter.toLowerCase() + ".*");
+			Matcher m = pattern.matcher(node.getPathNameLowerCase());
+			if (m.matches())
+				results.add(node);
+			if (node.isDirectory())
+				findRecursive(node, filter, results);
+		}
+	}
+
+	private void populateTable(IndexNode node) {
 		table.setDisable(true);
 		new Thread(new Runnable() {
 			@Override
 			public void run() {
-				List<Path> list = new ArrayList<>();
-				try {
-					list.addAll(Files.list(path).collect(Collectors.toList()));
-				} catch (IOException e) {
-					String msg = "Nezdařilo se získat přehled adresáře hudby";
-					logger.error(msg, e);
-					TrayControl.showMessage(msg);
-				}
 				Platform.runLater(() -> {
-					if (list != null) {
-						ObservableList<Path> data = FXCollections.observableArrayList(list);
-						table.setItems(data);
-						// musí být až po populate
-						table.getSortOrder().add(table.getColumns().iterator().next());
-					}
+					ObservableList<IndexNode> data = FXCollections.observableArrayList(node.getSubnodes());
+					table.setItems(data);
+					// musí být až po populate
+					table.getSortOrder().add(table.getColumns().iterator().next());
 					table.setDisable(false);
+					table.refresh();
 				});
 			}
 		}).start();
@@ -277,9 +298,9 @@ public class MusicSearchWindow {
 		new Thread(new Runnable() {
 			@Override
 			public void run() {
-				List<Path> list = new ArrayList<>();
+				List<IndexNode> list = new ArrayList<>();
 				try {
-					findRecursive(ROOT, filter, list);
+					findRecursive(index, filter, list);
 				} catch (IOException e) {
 					String msg = "Nezdařilo se získat přehled adresáře hudby";
 					logger.error(msg, e);
@@ -287,7 +308,7 @@ public class MusicSearchWindow {
 				}
 				Platform.runLater(() -> {
 					if (list != null) {
-						ObservableList<Path> data = FXCollections.observableArrayList(list);
+						ObservableList<IndexNode> data = FXCollections.observableArrayList(list);
 						table.setItems(data);
 						// musí být až po populate
 						table.getSortOrder().add(table.getColumns().iterator().next());
