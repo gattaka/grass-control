@@ -3,6 +3,7 @@ package cz.gattserver.grass.control.vlc;
 import java.beans.PropertyChangeSupport;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 
 import org.apache.commons.net.telnet.*;
 import org.apache.commons.net.telnet.TelnetClient;
@@ -166,7 +167,7 @@ class VLCClient extends TelnetClient implements Runnable, TelnetNotificationHand
 	private void sendString(String string) throws IOException {
 		if (!isConnected())
 			connect();
-		getOutputStream().write((string + "\n").getBytes());
+		getOutputStream().write((string + "\n").getBytes(Charset.forName("UTF-8")));
 		getOutputStream().flush();
 	}
 
