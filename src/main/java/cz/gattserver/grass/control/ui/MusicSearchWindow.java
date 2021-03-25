@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,6 +47,8 @@ public class MusicSearchWindow {
 	private Stage stage;
 	private TableView<IndexNode> table;
 	private History<Command> history;
+	private Button backBtn;
+	private Button forwardBtn;
 
 	public static void runOnInstance(Runnable cmd) {
 		Platform.runLater(() -> {
@@ -69,8 +70,6 @@ public class MusicSearchWindow {
 		if (initialized)
 			return;
 
-		history = new History<>();
-
 		stage = new Stage();
 		stage.setTitle("Vyhledávání hudby");
 		stage.setHeight(800);
@@ -90,13 +89,11 @@ public class MusicSearchWindow {
 		};
 		textField.setOnAction(searchHandler);
 
-		Button backBtn = new Button();
+		backBtn = new Button();
 		backBtn.setText("<");
-		backBtn.setDisable(true);
 
-		Button forwardBtn = new Button();
+		forwardBtn = new Button();
 		forwardBtn.setText(">");
-		forwardBtn.setDisable(true);
 
 		backBtn.setOnAction(e -> {
 			history.back().run();
@@ -131,10 +128,11 @@ public class MusicSearchWindow {
 
 					final HBox line = new HBox();
 					final Button playBtn = new Button("Přehrát");
+					final Button enqueueBtn = new Button("Přidat");
 					final Button openBtn = new Button("Otevřít");
 
 					{
-						line.getChildren().addAll(playBtn, openBtn);
+						line.getChildren().addAll(playBtn, enqueueBtn, openBtn);
 						line.setSpacing(10);
 						line.setPadding(new Insets(0));
 					}
@@ -148,6 +146,8 @@ public class MusicSearchWindow {
 						} else {
 							IndexNode node = getTableView().getItems().get(getIndex());
 							playBtn.setOnAction(e -> VLCControl.sendCommand(VLCCommand.ADD, node.getPath().toString()));
+							enqueueBtn.setOnAction(
+									e -> VLCControl.sendCommand(VLCCommand.ENQUEUE, node.getPath().toString()));
 							openBtn.setOnAction(e -> {
 								pushAndRunCommand(() -> populateTable(node));
 								backBtn.setDisable(false);
@@ -173,10 +173,11 @@ public class MusicSearchWindow {
 
 					final HBox line = new HBox();
 					final Button playBtn = new Button("Přehrát");
+					final Button enqueueBtn = new Button("Přidat");
 					final Button openBtn = new Button("Otevřít");
 
 					{
-						line.getChildren().addAll(playBtn, openBtn);
+						line.getChildren().addAll(playBtn, enqueueBtn, openBtn);
 						line.setSpacing(10);
 						line.setPadding(new Insets(0));
 					}
@@ -190,6 +191,8 @@ public class MusicSearchWindow {
 						} else {
 							IndexNode node = getTableView().getItems().get(getIndex()).getParentNode();
 							playBtn.setOnAction(e -> VLCControl.sendCommand(VLCCommand.ADD, node.getPath().toString()));
+							enqueueBtn.setOnAction(
+									e -> VLCControl.sendCommand(VLCCommand.ENQUEUE, node.getPath().toString()));
 							openBtn.setOnAction(e -> {
 								pushAndRunCommand(() -> populateTable(node));
 								backBtn.setDisable(false);
@@ -206,9 +209,7 @@ public class MusicSearchWindow {
 		parentDirCol.setMinWidth(500);
 		table.getColumns().add(parentDirCol);
 
-		index = new IndexNode(null, ROOT);
-		buildIndex(index);
-		pushAndRunCommand(() -> populateTable(index));
+		reindex();
 
 		layout.getChildren().add(table);
 
@@ -221,11 +222,15 @@ public class MusicSearchWindow {
 		clearPlaylistBtn.setText("Vyčistit playlist");
 		clearPlaylistBtn.setOnAction(e -> VLCControl.sendCommand(VLCCommand.CLEAR));
 
+		Button reindexBtn = new Button();
+		reindexBtn.setText("Reindex");
+		reindexBtn.setOnAction(e -> reindex());
+
 		Button closeBtn = new Button();
 		closeBtn.setText("Zavřít");
 		closeBtn.setOnAction(e -> stage.hide());
 
-		buttonLine.getChildren().addAll(clearPlaylistBtn, closeBtn);
+		buttonLine.getChildren().addAll(clearPlaylistBtn, reindexBtn, closeBtn);
 
 		stage.setScene(scene);
 
@@ -236,6 +241,15 @@ public class MusicSearchWindow {
 		}
 
 		initialized = true;
+	}
+
+	private void reindex() {
+		index = new IndexNode(null, ROOT);
+		buildIndex(index);
+		history = new History<>();
+		pushAndRunCommand(() -> populateTable(index));
+		backBtn.setDisable(true);
+		forwardBtn.setDisable(true);
 	}
 
 	private void pushAndRunCommand(Command cmd) {
@@ -253,15 +267,6 @@ public class MusicSearchWindow {
 			});
 		} catch (IOException e) {
 			logger.error("Path listing for path " + node.getPath() + " failed", e);
-		}
-	}
-
-	private void findFSRecursive(Path path, String filter, List<Path> results) throws IOException {
-		for (Path p : Files.list(path).collect(Collectors.toList())) {
-			if (p.getFileName().toString().toLowerCase().matches(".*" + filter.toLowerCase() + ".*"))
-				results.add(p);
-			if (Files.isDirectory(p))
-				findFSRecursive(p, filter, results);
 		}
 	}
 

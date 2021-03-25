@@ -8,6 +8,10 @@ import java.util.function.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import cz.gattserver.grass.control.system.CmdControl;
+import cz.gattserver.grass.control.ui.common.MessageLevel;
+import cz.gattserver.grass.control.ui.common.TrayControl;
+
 public enum VLCControl {
 
 	INSTANCE;
@@ -18,26 +22,34 @@ public enum VLCControl {
 
 	private static void connect() {
 		try {
+			if (vlc != null)
+				vlc.disconnect();
 			vlc = new VLCClient();
 			vlc.connect();
 		} catch (IOException e) {
-			throw new IllegalStateException("VLC connect failed", e);
+			CmdControl.openVLC();
+			vlc = new VLCClient();
+			try {
+				vlc.connect();
+			} catch (IOException e1) {
+				String msg = "Couldn't connect to VLC";
+				logger.warn(msg, e);
+				TrayControl.showMessage(msg + " " + e.getMessage(), MessageLevel.ERROR);
+			}
 		}
 	}
 
 	public static void sendCommand(VLCCommand command, String... params) {
-		if (vlc == null)
+		boolean needsConnect = vlc == null || !vlc.isConnected() || !vlc.isAvailable();
+		if (needsConnect)
 			connect();
 		try {
+			// DUMMY command pro oveření, že je spojení aktivní (nic jiného
+			// nefunguje tak rychle a spolehlivě)
+			vlc.sendCommand(VLCCommand.RATE, "1");
 			vlc.sendCommand(command, params);
 		} catch (IOException e1) {
 			logger.error("SendCommand failed -- trying reconnect");
-			try {
-				vlc.disconnect();
-			} catch (IOException ee) {
-				// nevadí, disconnect nemusí projít, pokud je spojení úplně
-				// zrušené, je dobré to ale zkusit, aby nezůstalo viset
-			}
 			// zkus vytvořit nové spojení
 			connect();
 			try {
@@ -53,7 +65,6 @@ public enum VLCControl {
 		if (vlc == null)
 			connect();
 		vlc.getSupport().addPropertyChangeListener(VLCClient.CLIENT_MESSAGE, new PropertyChangeListener() {
-
 			private StringBuilder sb = new StringBuilder();
 
 			@Override

@@ -10,9 +10,6 @@ import org.apache.commons.net.telnet.TelnetClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import cz.gattserver.grass.control.ui.common.MessageLevel;
-import cz.gattserver.grass.control.ui.common.TrayControl;
-
 /**
  * Exposes control of VLC media player (videolan.org) from java. VLC must be set
  * up to open a telnet control on localhost:4444.
@@ -53,32 +50,26 @@ class VLCClient extends TelnetClient implements Runnable, TelnetNotificationHand
 	public void connect() throws IOException {
 		// used by reader to get input stream
 		staticInstance = this;
-		try {
-			staticInstance.connect("localhost", VLC_PORT);
-			// starts the thread to get the text sent back from VLC
-			Thread thread = new Thread(new VLCClient());
-			thread.start();
-			// notifications call back to logger
-			staticInstance.registerNotifHandler(this);
-			// shutdown hook here makes sure to disconnect cleanly, as long as
-			// we are not terminated
-			Runtime.getRuntime().addShutdownHook(new Thread() {
-				@Override
-				public void run() {
-					try {
-						if (isConnected())
-							disconnect();
-					} catch (IOException ex) {
-						logger.warn("ShutdownHook failed", ex);
-					}
+		staticInstance.connect("localhost", VLC_PORT);
+		// starts the thread to get the text sent back from VLC
+		Thread thread = new Thread(new VLCClient());
+		thread.start();
+		// notifications call back to logger
+		staticInstance.registerNotifHandler(this);
+		// shutdown hook here makes sure to disconnect cleanly, as long as
+		// we are not terminated
+		Runtime.getRuntime().addShutdownHook(new Thread() {
+			@Override
+			public void run() {
+				try {
+					if (isConnected())
+						disconnect();
+				} catch (IOException ex) {
+					logger.warn("ShutdownHook failed", ex);
 				}
-			});
-			sendString(VLC_PASS);
-		} catch (IOException e) {
-			String msg = "Couldn't connect to VLC";
-			logger.warn(msg, e);
-			TrayControl.showMessage(msg + " " + e.getMessage(), MessageLevel.ERROR);
-		}
+			}
+		});
+		sendString(VLC_PASS);
 	}
 
 	/**
@@ -165,8 +156,6 @@ class VLCClient extends TelnetClient implements Runnable, TelnetNotificationHand
 	}
 
 	private void sendString(String string) throws IOException {
-		if (!isConnected())
-			connect();
 		getOutputStream().write((string + "\n").getBytes(Charset.forName("UTF-8")));
 		getOutputStream().flush();
 	}

@@ -61,11 +61,26 @@ public enum VLCCommand {
 	 * Add
 	 */
 	ADD("add"),
+	
+	/**
+	 * Enqueue
+	 */
+	ENQUEUE("enqueue"),
 
 	/**
 	 * Clear
 	 */
-	CLEAR("clear");
+	CLEAR("clear"),
+
+	/**
+	 * Description
+	 */
+	DESCRIPTION("description"),
+	
+	/**
+	 * Rate
+	 */
+	RATE("rate");
 
 	private String signalName;
 

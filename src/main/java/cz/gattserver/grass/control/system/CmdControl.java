@@ -20,6 +20,16 @@ public enum CmdControl {
 			logger.error("Command '" + command + "' failed", e);
 		}
 	}
+	
+	public static void openVLC() {
+		String command = "start vlc";
+		ProcessBuilder pb = new ProcessBuilder("cmd.exe", "/c", command);
+		try {
+			pb.start();
+		} catch (IOException e) {
+			logger.error("Command '" + command + "' failed", e);
+		}
+	}
 
 	/**
 	 * Vyžaduje http://www.nirsoft.net/utils/nircmd.html na PATH
