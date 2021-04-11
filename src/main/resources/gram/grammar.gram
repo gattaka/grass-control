@@ -1,7 +1,7 @@
 #JSGF V1.0;
 
 grammar all;
-public <intro> = grass control;
+<intro> = grass control;
 public <commands> = <intro> (open <targets> | <vlc-commands> | volume (up | down));
 <targets> = grass | nexus | hardware | articles | system monitor | speech history | music;
 <vlc-commands> = player (next | previous | stop | play | (start | stop) shuffle | status);

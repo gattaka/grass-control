@@ -17,7 +17,6 @@ import cz.gattserver.grass.control.ui.common.TrayControl;
 import cz.gattserver.grass.control.vlc.VLCCommand;
 import cz.gattserver.grass.control.vlc.VLCControl;
 import edu.cmu.sphinx.api.Configuration;
-import edu.cmu.sphinx.api.LiveSpeechRecognizer;
 import edu.cmu.sphinx.api.SpeechResult;
 import edu.cmu.sphinx.decoder.search.Token;
 
@@ -55,12 +54,17 @@ public enum SpeechControl {
 	private static final String OPEN_SPEECH_HISTORY = PREFIX + "open speech history";
 
 	private volatile boolean running = false;
+	private volatile boolean restart = false;
 	private volatile boolean enabled = true;
 
 	// private volatile boolean ready = false;
 	// private volatile long readyTime = 0;
 
 	private static List<SpeechLogTO> history = new ArrayList<>();
+
+	public void restart() {
+		restart = true;
+	}
 
 	public void start() {
 		if (running)
@@ -72,6 +76,7 @@ public enum SpeechControl {
 				try {
 					runControl();
 				} catch (InterruptedException | IOException e) {
+					logger.error("Thread runControl threw an exception", e);
 					throw new IllegalStateException(SpeechControl.class.getName() + " was interrupted", e);
 				}
 			}
@@ -99,22 +104,29 @@ public enum SpeechControl {
 	}
 
 	private void runControl() throws InterruptedException, IOException {
-		Configuration configuration = new Configuration();
-		configuration.setAcousticModelPath(ACOUSTIC_MODEL);
-		configuration.setDictionaryPath(DICTIONARY_PATH);
-		configuration.setLanguageModelPath(LANGUAGE_MODEL);
-		configuration.setGrammarPath(GRAMMAR_PATH);
-		configuration.setUseGrammar(true);
-		configuration.setGrammarName("grammar");
-		// configuration.setSampleRate(48000); // přestane detekovat všechno
+		while (true) {
+			Configuration configuration = new Configuration();
+			configuration.setAcousticModelPath(ACOUSTIC_MODEL);
+			configuration.setDictionaryPath(DICTIONARY_PATH);
+			configuration.setLanguageModelPath(LANGUAGE_MODEL);
+			configuration.setGrammarPath(GRAMMAR_PATH);
+			configuration.setUseGrammar(true);
+			configuration.setGrammarName("grammar");
+			// configuration.setSampleRate(48000); // přestane detekovat všechno
 
-		LiveSpeechRecognizer recognizer = new LiveSpeechRecognizer(configuration);
-		SpeechResult result = null;
-		recognizer.startRecognition(true);
-		logger.info("Speech recognition initialized");
-		while (running) {
-			while ((result = recognizer.getResult()) != null) {
+			CustomLiveSpeechRecognizer recognizer = new CustomLiveSpeechRecognizer(configuration);
+			recognizer.startRecognition(true);
+			logger.info("Speech recognition initialized");
 
+			while (true) {
+				if (restart) {
+					restart = false;
+					recognizer.stopRecognition();
+					break;
+				}
+				SpeechResult result = recognizer.getResult();
+				if (result == null)
+					continue;
 				Token bestToken = result.getResult().getBestFinalToken();
 				if (bestToken == null)
 					continue;
@@ -209,7 +221,6 @@ public enum SpeechControl {
 				}
 			}
 		}
-		recognizer.stopRecognition();
 	}
 
 	private void executeCommand(String text, double fromScore, double toScore, ScoreTO score, Command command) {

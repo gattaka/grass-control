@@ -54,6 +54,10 @@ public enum TrayControl {
 				.addItemListener(e -> SpeechControl.INSTANCE.setEnabled(speechRecognitionCheckbox.getState()));
 		popup.add(speechRecognitionCheckbox);
 
+		MenuItem speechRecognitionRestartItem = new MenuItem("Restartovat hlasovou detekci");
+		speechRecognitionRestartItem.addActionListener(e -> SpeechControl.INSTANCE.restart());
+		popup.add(speechRecognitionRestartItem);
+
 		MenuItem historyItem = new MenuItem("Historie příkazů");
 		historyItem.addActionListener(e -> HistoryWindow.create());
 		popup.add(historyItem);
