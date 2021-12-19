@@ -16,9 +16,6 @@ import cz.gattserver.grass.control.ui.common.MessageLevel;
 import cz.gattserver.grass.control.ui.common.TrayControl;
 import cz.gattserver.grass.control.vlc.VLCCommand;
 import cz.gattserver.grass.control.vlc.VLCControl;
-import edu.cmu.sphinx.api.Configuration;
-import edu.cmu.sphinx.api.SpeechResult;
-import edu.cmu.sphinx.decoder.search.Token;
 
 public enum SpeechControl {
 
@@ -26,14 +23,9 @@ public enum SpeechControl {
 
 	private static final Logger logger = LoggerFactory.getLogger(SpeechControl.class);
 
-	private static final String ACOUSTIC_MODEL = "resource:/edu/cmu/sphinx/models/en-us/en-us";
-	private static final String DICTIONARY_PATH = "resource:/edu/cmu/sphinx/models/en-us/cmudict-en-us.dict";
-	private static final String GRAMMAR_PATH = "resource:/gram/";
-	private static final String LANGUAGE_MODEL = "resource:/edu/cmu/sphinx/models/en-us/en-us.lm.bin";
-
-	private static final String GRASS_CONTROL = "grass control";
-
-	private static final String PREFIX = GRASS_CONTROL + " ";
+	// private static final String GRASS_CONTROL = "grass control";
+	// private static final String PREFIX = GRASS_CONTROL + " ";
+	private static final String PREFIX = "";
 
 	private static final String VOLUME_UP = PREFIX + "volume up";
 	private static final String VOLUME_DOWN = PREFIX + "volume down";
@@ -54,17 +46,9 @@ public enum SpeechControl {
 	private static final String OPEN_SPEECH_HISTORY = PREFIX + "open speech history";
 
 	private volatile boolean running = false;
-	private volatile boolean restart = false;
 	private volatile boolean enabled = true;
 
-	// private volatile boolean ready = false;
-	// private volatile long readyTime = 0;
-
 	private static List<SpeechLogTO> history = new ArrayList<>();
-
-	public void restart() {
-		restart = true;
-	}
 
 	public void start() {
 		if (running)
@@ -104,136 +88,95 @@ public enum SpeechControl {
 	}
 
 	private void runControl() throws InterruptedException, IOException {
-		while (true) {
-			Configuration configuration = new Configuration();
-			configuration.setAcousticModelPath(ACOUSTIC_MODEL);
-			configuration.setDictionaryPath(DICTIONARY_PATH);
-			configuration.setLanguageModelPath(LANGUAGE_MODEL);
-			configuration.setGrammarPath(GRAMMAR_PATH);
-			configuration.setUseGrammar(true);
-			configuration.setGrammarName("grammar");
-			// configuration.setSampleRate(48000); // přestane detekovat všechno
+		VoskRecognizer recognizer = new VoskRecognizer();
+		recognizer.start(this::onResult);
+		logger.info("Speech recognition initialized");
+	}
 
-			CustomLiveSpeechRecognizer recognizer = new CustomLiveSpeechRecognizer(configuration);
-			recognizer.startRecognition(true);
-			logger.info("Speech recognition initialized");
-
-			while (true) {
-				if (restart) {
-					restart = false;
-					recognizer.stopRecognition();
-					break;
+	private void onResult(String s) {
+		switch (s) {
+		case PLAYER_NEXT:
+			executeCommand(s, () -> {
+				VLCControl.sendCommand(VLCCommand.NEXT);
+				// Musí se počkat, jinak se bude vypisovat ještě
+				// aktuální položka
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
 				}
-				SpeechResult result = recognizer.getResult();
-				if (result == null)
-					continue;
-				Token bestToken = result.getResult().getBestFinalToken();
-				if (bestToken == null)
-					continue;
-
-				String s = bestToken.getWordPathNoFiller();
-				ScoreTO score = new ScoreTO(bestToken.getScore(), bestToken.getAcousticScore(),
-						bestToken.getLanguageScore());
-
-				if ("<unk>".equals(s) || "".equals(s))
-					continue;
-
-				// Vypadá to, že čím lepší frázování (oddělení slov při
-				// zadávání, tím lepší skore)
-				logger.info("You said: '" + s + "' (score " + score + ")");
-
-				switch (s) {
-				case PLAYER_NEXT:
-					executeCommand(s, -1.00E8, -5.70E8, score, () -> {
-						VLCControl.sendCommand(VLCCommand.NEXT);
-						// Musí se počkat, jinak se bude vypisovat ještě
-						// aktuální položka
-						try {
-							Thread.sleep(1000);
-						} catch (InterruptedException e) {
-							e.printStackTrace();
-						}
-						runVLCStatus();
-					});
-					break;
-				case PLAYER_PREVIOUS:
-					executeCommand(s, -1.00E8, -6.00E8, score, () -> {
-						// Musí se počkat, jinak se bude vypisovat ještě
-						// aktuální položka
-						VLCControl.sendCommand(VLCCommand.PREV);
-						try {
-							Thread.sleep(1000);
-						} catch (InterruptedException e) {
-							e.printStackTrace();
-						}
-						runVLCStatus();
-					});
-					break;
-
-				case PLAYER_STOP:
-					// false -7.27
-					executeCommand(s, -1.00E8, -7.00E8, score, () -> VLCControl.sendCommand(VLCCommand.PAUSE));
-					break;
-				case PLAYER_PLAY:
-					executeCommand(s, -1.20E8, -5.90E8, score, () -> VLCControl.sendCommand(VLCCommand.PLAY));
-					break;
-
-				case VOLUME_UP:
-					executeCommand(s, -1.40E8, -7.60E8, score, () -> CmdControl.callNnircmd("changesysvolume 5000"));
-					break;
-				case VOLUME_DOWN:
-					executeCommand(s, -1.36E8, -7.60E8, score, () -> CmdControl.callNnircmd("changesysvolume -5000"));
-					break;
-
-				case PLAYER_START_SHUFFLE:
-					executeCommand(s, -2.30E8, -9.50E8, score, () -> VLCControl.sendCommand(VLCCommand.RANDOM_ON));
-					break;
-				case PLAYER_STOP_SHUFFLE:
-					executeCommand(s, -2.30E8, -7.80E8, score, () -> VLCControl.sendCommand(VLCCommand.RANDOM_OFF));
-					break;
-
-				case PLAYER_STATUS:
-					executeCommand(s, -1.00E8, -7.50E8, score, () -> runVLCStatus());
-					break;
-
-				case OPEN_HW:
-					executeCommand(s, -1.60E8, -4.13E8, score,
-							() -> CmdControl.openChrome("https://www.gattserver.cz/hw"));
-					break;
-				case OPEN_GRASS:
-					executeCommand(s, -1.60E8, -5.00E8, score,
-							() -> CmdControl.openChrome("https://www.gattserver.cz"));
-					break;
-				case OPEN_NEXUS:
-					executeCommand(s, -1.60E8, -5.40E8, score,
-							() -> CmdControl.openChrome("https://www.gattserver.cz:8843"));
-					break;
-				case OPEN_SYSTEM_MONITOR:
-					executeCommand(s, -2.10E8, -5.00E8, score,
-							() -> CmdControl.openChrome("https://www.gattserver.cz/system-monitor"));
-					break;
-				case OPEN_SPEECH_HISTORY:
-					executeCommand(s, -2.10E8, -5.40E8, score, HistoryWindow::create);
-					break;
-				case OPEN_MUSIC:
-					executeCommand(s, -2.10E8, -5.40E8, score, MusicSearchWindow::showInstance);
-					break;
+				runVLCStatus();
+			});
+			break;
+		case PLAYER_PREVIOUS:
+			executeCommand(s, () -> {
+				// Musí se počkat, jinak se bude vypisovat ještě
+				// aktuální položka
+				VLCControl.sendCommand(VLCCommand.PREV);
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
 				}
-			}
+				runVLCStatus();
+			});
+			break;
+
+		case PLAYER_STOP:
+			// false -7.27
+			executeCommand(s, () -> VLCControl.sendCommand(VLCCommand.PAUSE));
+			break;
+		case PLAYER_PLAY:
+			executeCommand(s, () -> VLCControl.sendCommand(VLCCommand.PLAY));
+			break;
+
+		case VOLUME_UP:
+			executeCommand(s, () -> CmdControl.callNnircmd("changesysvolume 5000"));
+			break;
+		case VOLUME_DOWN:
+			executeCommand(s, () -> CmdControl.callNnircmd("changesysvolume -5000"));
+			break;
+
+		case PLAYER_START_SHUFFLE:
+			executeCommand(s, () -> VLCControl.sendCommand(VLCCommand.RANDOM_ON));
+			break;
+		case PLAYER_STOP_SHUFFLE:
+			executeCommand(s, () -> VLCControl.sendCommand(VLCCommand.RANDOM_OFF));
+			break;
+
+		case PLAYER_STATUS:
+			executeCommand(s, () -> runVLCStatus());
+			break;
+
+		case OPEN_HW:
+			executeCommand(s, () -> CmdControl.openChrome("https://www.gattserver.cz/hw"));
+			break;
+		case OPEN_GRASS:
+			executeCommand(s, () -> CmdControl.openChrome("https://www.gattserver.cz"));
+			break;
+		case OPEN_NEXUS:
+			executeCommand(s, () -> CmdControl.openChrome("https://www.gattserver.cz:8843"));
+			break;
+		case OPEN_SYSTEM_MONITOR:
+			executeCommand(s, () -> CmdControl.openChrome("https://www.gattserver.cz/system-monitor"));
+			break;
+		case OPEN_SPEECH_HISTORY:
+			executeCommand(s, HistoryWindow::create);
+			break;
+		case OPEN_MUSIC:
+			executeCommand(s, MusicSearchWindow::showInstance);
+			break;
 		}
 	}
 
-	private void executeCommand(String text, double fromScore, double toScore, ScoreTO score, Command command) {
-		logger.info("You said: '" + text + "' (score " + score + ")");
+	private void executeCommand(String text, Command command) {
+		logger.info("You said: '" + text);
 		if (!enabled) {
 			String msg = "Speech recognition is disabled";
 			TrayControl.showMessage(msg);
 			logger.info(msg);
-		} else if (score.getSelectedScore() <= fromScore && score.getSelectedScore() >= toScore) {
-			history.add(new SpeechLogTO(new Date(), text, score.getSelectedScore(), true));
-			TrayControl.showMessage(text + " (score " + score + ")");
-			logger.info("Score in range");
-			// readyTime = System.currentTimeMillis();
+		} else {
+			history.add(new SpeechLogTO(new Date(), text, 1f, true));
 			try {
 				command.execute();
 			} catch (Exception e) {
@@ -241,10 +184,9 @@ public enum SpeechControl {
 				logger.info(msg, e);
 				TrayControl.showMessage(msg, MessageLevel.ERROR);
 			}
-		} else {
-			logger.info("Score out of range");
-			history.add(new SpeechLogTO(new Date(), text, score.getSelectedScore(), false));
 		}
+
+		history.add(new SpeechLogTO(new Date(), text, 1f, false));
 	}
 
 	public void setEnabled(boolean enabled) {
