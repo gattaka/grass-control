@@ -85,8 +85,10 @@ public enum SpeechControl {
 			int score = 0;
 			for (int i = 0; i < chunks.length; i++)
 				score += hammingDist(chunks[i], n.getChunks()[i]);
-			if (lastScore > score)
+			if (lastScore > score) {
 				lastCommand = n;
+				lastScore = score;
+			}
 		}
 		if (lastCommand != null)
 			executeCommandByName(lastCommand);
