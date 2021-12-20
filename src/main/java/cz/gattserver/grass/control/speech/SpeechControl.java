@@ -23,27 +23,9 @@ public enum SpeechControl {
 
 	private static final Logger logger = LoggerFactory.getLogger(SpeechControl.class);
 
-	// private static final String GRASS_CONTROL = "grass control";
-	// private static final String PREFIX = GRASS_CONTROL + " ";
-	private static final String PREFIX = "";
-
-	private static final String VOLUME_UP = PREFIX + "volume up";
-	private static final String VOLUME_DOWN = PREFIX + "volume down";
-
-	private static final String PLAYER_NEXT = PREFIX + "player next";
-	private static final String PLAYER_PREVIOUS = PREFIX + "player previous";
-	private static final String PLAYER_STOP = PREFIX + "player stop";
-	private static final String PLAYER_PLAY = PREFIX + "player play";
-	private static final String PLAYER_START_SHUFFLE = PREFIX + "player start shuffle";
-	private static final String PLAYER_STOP_SHUFFLE = PREFIX + "player stop shuffle";
-	private static final String PLAYER_STATUS = PREFIX + "player status";
-
-	private static final String OPEN_MUSIC = PREFIX + "open music";
-	private static final String OPEN_HW = PREFIX + "open hardware";
-	private static final String OPEN_GRASS = PREFIX + "open grass";
-	private static final String OPEN_NEXUS = PREFIX + "open nexus";
-	private static final String OPEN_SYSTEM_MONITOR = PREFIX + "open system monitor";
-	private static final String OPEN_SPEECH_HISTORY = PREFIX + "open speech history";
+	// Kolik je maximální hamm. vzdálenost mezi frází příkazu a tím, co bylo
+	// rozpoznáno, aby se příkaz provedl
+	private static final int THRESHOLD = 5;
 
 	private volatile boolean running = false;
 	private volatile boolean enabled = true;
@@ -94,7 +76,25 @@ public enum SpeechControl {
 	}
 
 	private void onResult(String s) {
-		switch (s) {
+		int lastScore = THRESHOLD;
+		CommandName lastCommand = null;
+		for (CommandName n : CommandName.values()) {
+			String[] chunks = s.split(" ");
+			if (chunks.length != n.getChunks().length)
+				continue;
+			int score = 0;
+			for (int i = 0; i < chunks.length; i++)
+				score += hammingDist(chunks[i], n.getChunks()[i]);
+			if (lastScore > score)
+				lastCommand = n;
+		}
+		if (lastCommand != null)
+			executeCommandByName(lastCommand);
+	}
+
+	private void executeCommandByName(CommandName name) {
+		String s = name.getPhrase();
+		switch (name) {
 		case PLAYER_NEXT:
 			executeCommand(s, () -> {
 				VLCControl.sendCommand(VLCCommand.NEXT);
@@ -123,7 +123,6 @@ public enum SpeechControl {
 			break;
 
 		case PLAYER_STOP:
-			// false -7.27
 			executeCommand(s, () -> VLCControl.sendCommand(VLCCommand.PAUSE));
 			break;
 		case PLAYER_PLAY:
@@ -169,6 +168,16 @@ public enum SpeechControl {
 		}
 	}
 
+	private int hammingDist(String str1, String str2) {
+		int i = 0, count = 0;
+		while (i < Math.max(str1.length(), str2.length())) {
+			if (str2.length() <= i || str1.length() <= i || str1.charAt(i) != str2.charAt(i))
+				count++;
+			i++;
+		}
+		return count;
+	}
+
 	private void executeCommand(String text, Command command) {
 		logger.info("You said: '" + text);
 		if (!enabled) {
@@ -176,9 +185,10 @@ public enum SpeechControl {
 			TrayControl.showMessage(msg);
 			logger.info(msg);
 		} else {
-			history.add(new SpeechLogTO(new Date(), text, 1f, true));
+			history.add(new SpeechLogTO(new Date(), text));
 			try {
 				command.execute();
+				TrayControl.showMessage(text);
 			} catch (Exception e) {
 				String msg = "Command failed";
 				logger.info(msg, e);
@@ -186,7 +196,7 @@ public enum SpeechControl {
 			}
 		}
 
-		history.add(new SpeechLogTO(new Date(), text, 1f, false));
+		history.add(new SpeechLogTO(new Date(), text));
 	}
 
 	public void setEnabled(boolean enabled) {

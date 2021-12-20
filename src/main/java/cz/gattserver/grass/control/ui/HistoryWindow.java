@@ -79,15 +79,6 @@ public class HistoryWindow {
 		commandCol.setCellValueFactory(p -> new SimpleStringProperty(p.getValue().getCommand()));
 		table.getColumns().add(commandCol);
 
-		TableColumn<SpeechLogTO, String> scoreCol = new TableColumn<>("Score");
-		scoreCol.setMinWidth(90);
-		scoreCol.setCellValueFactory(p -> new SimpleStringProperty(String.valueOf(p.getValue().getScore())));
-		table.getColumns().add(scoreCol);
-
-		TableColumn<SpeechLogTO, String> inRangeCol = new TableColumn<>("V rozsahu");
-		inRangeCol.setCellValueFactory(p -> new SimpleStringProperty(p.getValue().isInRange() ? "Ano" : "Ne"));
-		table.getColumns().add(inRangeCol);
-
 		populateTable(table);
 
 		grid.setAlignment(Pos.CENTER);

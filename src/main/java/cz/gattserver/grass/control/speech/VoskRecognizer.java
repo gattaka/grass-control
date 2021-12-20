@@ -53,7 +53,7 @@ public class VoskRecognizer {
 				DataLine.Info info = new DataLine.Info(TargetDataLine.class, format);
 				TargetDataLine microphone;
 
-				try (Model model = new Model("vosk-model-small-en-us-0.15");
+				try (Model model = new Model("c:\\Program Files\\Grass control\\vosk-model-small-en-us-0.15\\");
 						Recognizer recognizer = new Recognizer(model, 120000)) {
 					try {
 						microphone = (TargetDataLine) AudioSystem.getLine(info);
