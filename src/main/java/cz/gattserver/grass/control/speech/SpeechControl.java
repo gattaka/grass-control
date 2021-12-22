@@ -16,16 +16,13 @@ import cz.gattserver.grass.control.ui.common.MessageLevel;
 import cz.gattserver.grass.control.ui.common.TrayControl;
 import cz.gattserver.grass.control.vlc.VLCCommand;
 import cz.gattserver.grass.control.vlc.VLCControl;
+import info.debatty.java.stringsimilarity.Levenshtein;
 
 public enum SpeechControl {
 
 	INSTANCE;
 
 	private static final Logger logger = LoggerFactory.getLogger(SpeechControl.class);
-
-	// Kolik je maximální hamm. vzdálenost mezi frází příkazu a tím, co bylo
-	// rozpoznáno, aby se příkaz provedl
-	private static final int THRESHOLD = 5;
 
 	private volatile boolean running = false;
 	private volatile boolean enabled = true;
@@ -76,22 +73,20 @@ public enum SpeechControl {
 	}
 
 	private void onResult(String s) {
-		int lastScore = THRESHOLD;
-		CommandName lastCommand = null;
 		for (CommandName n : CommandName.values()) {
 			String[] chunks = s.split(" ");
 			if (chunks.length != n.getChunks().length)
 				continue;
-			int score = 0;
-			for (int i = 0; i < chunks.length; i++)
-				score += hammingDist(chunks[i], n.getChunks()[i]);
-			if (lastScore > score) {
-				lastCommand = n;
-				lastScore = score;
+			boolean inTolerance = true;
+			for (int i = 0; i < chunks.length; i++) {
+				if (dist(chunks[i], n.getChunks()[i]) > n.getTolerances()[i]) {
+					inTolerance = false;
+					break;
+				}
 			}
+			if (inTolerance)
+				executeCommandByName(n);
 		}
-		if (lastCommand != null)
-			executeCommandByName(lastCommand);
 	}
 
 	private void executeCommandByName(CommandName name) {
@@ -155,9 +150,6 @@ public enum SpeechControl {
 		case OPEN_GRASS:
 			executeCommand(s, () -> CmdControl.openChrome("https://www.gattserver.cz"));
 			break;
-		case OPEN_NEXUS:
-			executeCommand(s, () -> CmdControl.openChrome("https://www.gattserver.cz:8843"));
-			break;
 		case OPEN_SYSTEM_MONITOR:
 			executeCommand(s, () -> CmdControl.openChrome("https://www.gattserver.cz/system-monitor"));
 			break;
@@ -170,27 +162,19 @@ public enum SpeechControl {
 		}
 	}
 
-	private int hammingDist(String str1, String str2) {
-		int i = 0, count = 0;
-		while (i < Math.max(str1.length(), str2.length())) {
-			if (str2.length() <= i || str1.length() <= i || str1.charAt(i) != str2.charAt(i))
-				count++;
-			i++;
-		}
-		return count;
+	private int dist(String str1, String str2) {
+		return (int) new Levenshtein().distance(str1, str2);
 	}
 
 	private void executeCommand(String text, Command command) {
-		logger.info("You said: '" + text);
+		TrayControl.showMessage(text);
 		if (!enabled) {
 			String msg = "Speech recognition is disabled";
 			TrayControl.showMessage(msg);
 			logger.info(msg);
 		} else {
-			history.add(new SpeechLogTO(new Date(), text));
 			try {
 				command.execute();
-				TrayControl.showMessage(text);
 			} catch (Exception e) {
 				String msg = "Command failed";
 				logger.info(msg, e);

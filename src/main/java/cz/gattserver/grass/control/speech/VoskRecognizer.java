@@ -6,11 +6,11 @@ import java.util.function.Consumer;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.DataLine;
-import javax.sound.sampled.Line;
 import javax.sound.sampled.LineUnavailableException;
-import javax.sound.sampled.Mixer;
 import javax.sound.sampled.TargetDataLine;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.vosk.LibVosk;
 import org.vosk.LogLevel;
 import org.vosk.Model;
@@ -18,27 +18,10 @@ import org.vosk.Recognizer;
 
 public class VoskRecognizer {
 
+	private static final Logger logger = LoggerFactory.getLogger(VoskRecognizer.class);
+
 	private volatile boolean initialized;
 	private volatile boolean enabled;
-
-	public void scanInputDevices() throws LineUnavailableException {
-		Mixer.Info[] mixerInfos = AudioSystem.getMixerInfo();
-		for (Mixer.Info info : mixerInfos) {
-			Mixer m = AudioSystem.getMixer(info);
-			Line.Info[] lineInfos = m.getSourceLineInfo();
-			for (Line.Info lineInfo : lineInfos) {
-				System.out.println(info.getName() + "---" + lineInfo);
-				Line line = m.getLine(lineInfo);
-				System.out.println("\t-----" + line);
-			}
-			lineInfos = m.getTargetLineInfo();
-			for (Line.Info lineInfo : lineInfos) {
-				System.out.println(m + "---" + lineInfo);
-				Line line = m.getLine(lineInfo);
-				System.out.println("\t-----" + line);
-			}
-		}
-	}
 
 	public void initialize(Consumer<String> onResult) throws LineUnavailableException {
 		LibVosk.setLogLevel(LogLevel.DEBUG);
@@ -67,12 +50,14 @@ public class VoskRecognizer {
 
 						while (enabled) {
 							numBytesRead = microphone.read(b, 0, CHUNK_SIZE);
-
 							if (recognizer.acceptWaveForm(b, numBytesRead)) {
 								String result = recognizer.getResult();
 								String chunks[] = result.split("\"");
-								System.out.println(chunks[3]);
-								onResult.accept(chunks[3]);
+								String payload = chunks[3];
+								if (payload.trim().length() > 0) {
+									logger.info(chunks[3]);
+									onResult.accept(chunks[3]);
+								}
 							}
 						}
 						microphone.close();
