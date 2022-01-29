@@ -11,9 +11,7 @@ public class MainPage extends Div {
 	private static final long serialVersionUID = -220383546549760661L;
 
 	public MainPage() {
-
 		add("Test");
-
 	}
 
 }

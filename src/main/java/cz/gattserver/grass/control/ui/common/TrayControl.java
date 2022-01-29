@@ -2,6 +2,7 @@ package cz.gattserver.grass.control.ui.common;
 
 import java.awt.AWTException;
 import java.awt.CheckboxMenuItem;
+import java.awt.Desktop;
 import java.awt.MenuItem;
 import java.awt.PopupMenu;
 import java.awt.SystemTray;
@@ -9,6 +10,8 @@ import java.awt.TrayIcon;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 import javax.imageio.ImageIO;
 
@@ -16,8 +19,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import cz.gattserver.grass.control.speech.SpeechControl;
-import cz.gattserver.grass.control.ui.HistoryWindow;
-import cz.gattserver.grass.control.ui.MusicSearchWindow;
 
 public enum TrayControl {
 
@@ -58,7 +59,7 @@ public enum TrayControl {
 		popup.add(historyItem);
 
 		MenuItem musicItem = new MenuItem("Vyhledávání hudby");
-		// musicItem.addActionListener(e -> MusicSearchWindow.showInstance());
+		historyItem.addActionListener(e -> openPage("localhost:8765/music"));
 		popup.add(musicItem);
 
 		popup.addSeparator();
@@ -72,6 +73,16 @@ public enum TrayControl {
 			tray.add(trayIcon);
 		} catch (AWTException e) {
 			logger.error("TrayIcon could not be added", e);
+		}
+	}
+
+	private void openPage(String url) {
+		if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+			try {
+				Desktop.getDesktop().browse(new URI(url));
+			} catch (IOException | URISyntaxException e) {
+				logger.error("Unable to open page '" + url + "'", e);
+			}
 		}
 	}
 

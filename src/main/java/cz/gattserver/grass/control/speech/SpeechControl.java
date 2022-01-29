@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import cz.gattserver.grass.control.system.CmdControl;
 import cz.gattserver.grass.control.ui.HistoryWindow;
-import cz.gattserver.grass.control.ui.MusicSearchWindow;
+import cz.gattserver.grass.control.ui.MusicSearch;
 import cz.gattserver.grass.control.ui.common.MessageLevel;
 import cz.gattserver.grass.control.ui.common.TrayControl;
 import cz.gattserver.grass.control.vlc.VLCCommand;
