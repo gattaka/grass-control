@@ -1,48 +1,48 @@
 package cz.gattserver.grass.control;
 
-import java.io.IOException;
+import java.net.URI;
+import java.net.URL;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.eclipse.jetty.annotations.AnnotationConfiguration;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.util.resource.Resource;
+import org.eclipse.jetty.webapp.Configuration;
+import org.eclipse.jetty.webapp.MetaInfConfiguration;
+import org.eclipse.jetty.webapp.WebAppContext;
+import org.eclipse.jetty.webapp.WebInfConfiguration;
+import org.eclipse.jetty.webapp.WebXmlConfiguration;
+
+import com.vaadin.flow.server.startup.ServletContextListeners;
 
 import cz.gattserver.grass.control.bluetooth.BluetoothControl;
 import cz.gattserver.grass.control.speech.SpeechControl;
 import cz.gattserver.grass.control.ui.common.TrayControl;
-import javafx.application.Application;
-import javafx.stage.Stage;
-import javafx.stage.StageStyle;
 
-public class Main extends Application {
+public class Main {
 
-	private static final Logger logger = LoggerFactory.getLogger(Main.class);
+	public static void main(String[] args) throws Exception {
+		// src/main/webapp nesmí být prázdná složka, jinak ji maven nepřidá do
+		// buildu a tohle pak bude padat na NPE
+		URL webRootLocation = Main.class.getResource("/webapp/");
+		URI webRootUri = webRootLocation.toURI();
 
-	private static Stage primaryStage;
+		WebAppContext context = new WebAppContext();
+		context.setBaseResource(Resource.newResource(webRootUri));
+		context.setContextPath("/");
+		context.setAttribute("org.eclipse.jetty.server.webapp.ContainerIncludeJarPattern", ".*");
+		context.setConfigurationDiscovered(true);
+		context.setConfigurations(new Configuration[] { new AnnotationConfiguration(), new WebInfConfiguration(),
+				new WebXmlConfiguration(), new MetaInfConfiguration() });
+		context.getServletContext().setExtendedListenerTypes(true);
+		context.addEventListener(new ServletContextListeners());
 
-	public static Stage getPrimaryStage() {
-		return primaryStage;
-	}
-
-	public static void main(String[] args) throws IOException, InterruptedException {
-		launch(args);
-	}
-
-	@Override
-	public void start(Stage stage) throws Exception {
-		Main.primaryStage = stage;
-		stage.setX(-1);
-		stage.setY(-1);
-		stage.setWidth(1);
-		stage.setHeight(1);
-		stage.initStyle(StageStyle.UTILITY);
-		stage.show();
+		Server server = new Server(8765);
+		server.setHandler(context);
+		server.start();
+		server.join();
 
 		TrayControl.INSTANCE.create();
 		BluetoothControl.INSTANCE.start();
 		SpeechControl.INSTANCE.start();
-
-		TrayControl.showMessage("Grass control started");
-
-		logger.info("GrassControl initialized");
 	}
-
 }

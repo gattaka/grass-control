@@ -154,10 +154,10 @@ public enum SpeechControl {
 			executeCommand(s, () -> CmdControl.openChrome("https://www.gattserver.cz/system-monitor"));
 			break;
 		case OPEN_SPEECH_HISTORY:
-			executeCommand(s, HistoryWindow::create);
+//			executeCommand(s, HistoryWindow::create);
 			break;
 		case OPEN_MUSIC:
-			executeCommand(s, MusicSearchWindow::showInstance);
+//			executeCommand(s, MusicSearchWindow::showInstance);
 			break;
 		}
 	}

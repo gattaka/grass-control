@@ -15,7 +15,6 @@ import javax.imageio.ImageIO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import cz.gattserver.grass.control.Main;
 import cz.gattserver.grass.control.speech.SpeechControl;
 import cz.gattserver.grass.control.ui.HistoryWindow;
 import cz.gattserver.grass.control.ui.MusicSearchWindow;
@@ -30,7 +29,7 @@ public enum TrayControl {
 
 	public static InputStream getIconStream() throws IOException {
 		// src/main/resources/favicon.png
-		return Main.class.getClassLoader().getResourceAsStream("favicon.png");
+		return TrayControl.class.getClassLoader().getResourceAsStream("favicon.png");
 	}
 
 	public static BufferedImage getIcon() throws IOException {
@@ -55,11 +54,11 @@ public enum TrayControl {
 		popup.add(speechRecognitionCheckbox);
 
 		MenuItem historyItem = new MenuItem("Historie příkazů");
-		historyItem.addActionListener(e -> HistoryWindow.create());
+		// historyItem.addActionListener(e -> HistoryWindow.create());
 		popup.add(historyItem);
 
 		MenuItem musicItem = new MenuItem("Vyhledávání hudby");
-		musicItem.addActionListener(e -> MusicSearchWindow.showInstance());
+		// musicItem.addActionListener(e -> MusicSearchWindow.showInstance());
 		popup.add(musicItem);
 
 		popup.addSeparator();
