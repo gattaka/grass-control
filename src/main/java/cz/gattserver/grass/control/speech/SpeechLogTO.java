@@ -1,19 +1,19 @@
 package cz.gattserver.grass.control.speech;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 public class SpeechLogTO {
 
-	private Date time;
+	private LocalDateTime time;
 	private String command;
 
-	public SpeechLogTO(Date time, String command) {
+	public SpeechLogTO(LocalDateTime time, String command) {
 		super();
 		this.time = time;
 		this.command = command;
 	}
 
-	public Date getTime() {
+	public LocalDateTime getTime() {
 		return time;
 	}
 

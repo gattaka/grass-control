@@ -1,6 +1,7 @@
 package cz.gattserver.grass.control.speech;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -10,8 +11,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import cz.gattserver.grass.control.system.CmdControl;
-import cz.gattserver.grass.control.ui.HistoryWindow;
-import cz.gattserver.grass.control.ui.MusicSearch;
+import cz.gattserver.grass.control.ui.SpeechPage;
+import cz.gattserver.grass.control.ui.MusicPage;
 import cz.gattserver.grass.control.ui.common.MessageLevel;
 import cz.gattserver.grass.control.ui.common.TrayControl;
 import cz.gattserver.grass.control.vlc.VLCCommand;
@@ -154,10 +155,10 @@ public enum SpeechControl {
 			executeCommand(s, () -> CmdControl.openChrome("https://www.gattserver.cz/system-monitor"));
 			break;
 		case OPEN_SPEECH_HISTORY:
-//			executeCommand(s, HistoryWindow::create);
+			// executeCommand(s, HistoryWindow::create);
 			break;
 		case OPEN_MUSIC:
-//			executeCommand(s, MusicSearchWindow::showInstance);
+			// executeCommand(s, MusicSearchWindow::showInstance);
 			break;
 		}
 	}
@@ -182,7 +183,7 @@ public enum SpeechControl {
 			}
 		}
 
-		history.add(new SpeechLogTO(new Date(), text));
+		history.add(new SpeechLogTO(LocalDateTime.now(), text));
 	}
 
 	public void setEnabled(boolean enabled) {
