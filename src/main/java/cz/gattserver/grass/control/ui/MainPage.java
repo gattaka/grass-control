@@ -1,18 +1,55 @@
 package cz.gattserver.grass.control.ui;
 
-import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.tabs.Tab;
+import com.vaadin.flow.component.tabs.Tabs;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.InitialPageSettings;
 import com.vaadin.flow.server.PageConfigurator;
+import com.vaadin.flow.server.VaadinService;
 
 @Route("")
 @PageTitle("Grasscontrol")
-public class MainPage extends Div implements PageConfigurator {
+public class MainPage extends VerticalLayout implements PageConfigurator {
 
 	private static final long serialVersionUID = -220383546549760661L;
 
+	private static final String MUSIC_NAME = "music";
+	private static final String SPEECH_NAME = "speech";
+
 	public MainPage() {
+		setPadding(false);
+		setSpacing(false);
+
+		Tabs menu = new Tabs();
+		menu.setWidthFull();
+		add(menu);
+
+		Tab music = new Tab("Hudba");
+		Tab speech = new Tab("Hlasové ovládání");
+		menu.add(music, speech);
+
+		String[] chunks = VaadinService.getCurrentRequest().getPathInfo().split("/");
+		if (chunks.length > 0) {
+			String currentPage = chunks[chunks.length - 1];
+			switch (currentPage) {
+			case MUSIC_NAME:
+				menu.setSelectedTab(music);
+				break;
+			case SPEECH_NAME:
+				menu.setSelectedTab(speech);
+				break;
+			}
+		}
+
+		menu.addSelectedChangeListener(e -> {
+			if (e.getSelectedTab() == music)
+				UI.getCurrent().getPage().setLocation(MUSIC_NAME);
+			if (e.getSelectedTab() == speech)
+				UI.getCurrent().getPage().setLocation(SPEECH_NAME);
+		});
 	}
 
 	/**

@@ -2,5 +2,5 @@ package cz.gattserver.grass.control.ui;
 
 public interface Command {
 
-	void run();
+	void run(MusicPageUIBundle bundle);
 }

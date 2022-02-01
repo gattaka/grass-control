@@ -17,7 +17,6 @@ import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.Grid.Column;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.component.orderedlayout.FlexComponent.Alignment;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
@@ -32,21 +31,17 @@ import cz.gattserver.grass.control.vlc.VLCControl;
 
 @Route("music")
 @PageTitle("Vyhledávání hudby")
-// @PreserveOnRefresh
 public class MusicPage extends MainPage {
 
 	private static final long serialVersionUID = 226911270833721492L;
 
 	private static final Logger logger = LoggerFactory.getLogger(MusicPage.class);
 
-	private History<Command> history;
+	private static History<Command> history = new History<>();
 	private IndexNode currentNode;
 
 	private ValueHolder<IndexNode> selectedNode;
 	private ValueHolder<IndexNode> selectedNodeParent;
-
-	private Span currentDirSpan;
-	private Span seekTimeSpan;
 
 	private HorizontalLayout nodeOperationsLayout;
 	private HorizontalLayout nodeParentOperationsLayout;
@@ -60,7 +55,6 @@ public class MusicPage extends MainPage {
 		selectedNode = new ValueHolder<>();
 		selectedNodeParent = new ValueHolder<>();
 
-		history = new History<>();
 		currentNode = MusicIndex.getRootNode();
 
 		Grid<IndexNode> grid = new Grid<>();
@@ -79,11 +73,16 @@ public class MusicPage extends MainPage {
 		layout.setSizeFull();
 		add(layout);
 
+		Span seekTimeSpan = new Span();
+		Span currentDirSpan = new Span();
+
+		MusicPageUIBundle bundle = new MusicPageUIBundle(grid, seekTimeSpan, currentDirSpan);
+
 		grid.addItemDoubleClickListener(e -> {
 			if (e.getColumn() == nazevColumn) {
-				open(grid, e.getItem());
+				open(bundle, e.getItem());
 			} else if (e.getColumn() == parentColumn) {
-				open(grid, e.getItem().getParentNode());
+				open(bundle, e.getItem().getParentNode());
 			}
 		});
 		grid.addItemClickListener(e -> {
@@ -99,16 +98,14 @@ public class MusicPage extends MainPage {
 		});
 
 		backBtn = new Button("<", e -> {
-			history.back().run();
-			backBtn.setEnabled(!history.isFirst());
-			forwardBtn.setEnabled(true);
+			history.back().run(bundle);
+			updateHistoryButtons();
 		});
 		backBtn.setEnabled(false);
 
 		forwardBtn = new Button(">", e -> {
-			history.forward().run();
-			forwardBtn.setEnabled(!history.isLast());
-			backBtn.setEnabled(true);
+			history.forward().run(bundle);
+			updateHistoryButtons();
 		});
 		forwardBtn.setEnabled(false);
 
@@ -116,7 +113,7 @@ public class MusicPage extends MainPage {
 		searchField.setWidthFull();
 
 		Button searchBtn = new Button("Hledat", e -> {
-			pushAndRunCommand(() -> populate(grid, searchField.getValue()));
+			pushAndRunCommand(bundle, b -> populate(b, searchField.getValue()));
 		});
 		searchBtn.setWidth(null);
 		searchField.addKeyPressListener(Key.ENTER, e -> searchBtn.click());
@@ -126,19 +123,17 @@ public class MusicPage extends MainPage {
 		topLayout.setWidthFull();
 		layout.add(topLayout);
 
-		currentDirSpan = new Span();
 		layout.add(currentDirSpan);
 
 		layout.add(grid);
 
-		nodeOperationsLayout = createButtons(grid, selectedNode);
-		nodeParentOperationsLayout = createButtons(grid, selectedNodeParent);
+		nodeOperationsLayout = createButtons(bundle, selectedNode);
+		nodeParentOperationsLayout = createButtons(bundle, selectedNodeParent);
 
 		FooterRow footer = grid.appendFooterRow();
 		footer.getCell(nazevColumn).setComponent(nodeOperationsLayout);
 		footer.getCell(parentColumn).setComponent(nodeParentOperationsLayout);
 
-		seekTimeSpan = new Span();
 		layout.add(seekTimeSpan);
 
 		Button clearBtn = new Button("Vyčistit playlist", e -> {
@@ -146,30 +141,40 @@ public class MusicPage extends MainPage {
 		});
 
 		Button reindexBtn = new Button("Reindex", e -> {
-			reindex(grid);
+			reindex(bundle);
 		});
 
 		HorizontalLayout bottomLayout = new HorizontalLayout(clearBtn, reindexBtn);
 		layout.add(bottomLayout);
 
-		pushAndRunCommand(() -> {
-			populate(grid, MusicIndex.getRootNode());
-		});
+		if (history.isEmpty()) {
+			pushAndRunCommand(bundle, b -> {
+				populate(b, MusicIndex.getRootNode());
+			});
+		} else {
+			history.getCurrent().run(bundle);
+			updateHistoryButtons();
+		}
 	}
 
-	private void updateSeekTimeSpan(long time, int count) {
-		seekTimeSpan.setText("Seek time: " + time + "ms, " + count + " items");
+	private void updateHistoryButtons() {
+		backBtn.setEnabled(!history.isFirst());
+		forwardBtn.setEnabled(!history.isLast());
+	}
+
+	private void updateSeekTimeSpan(MusicPageUIBundle bundle, long time, int count) {
+		bundle.getSeekTimeSpan().setText("Seek time: " + time + "ms, " + count + " items");
 		logger.info("seek time: " + time);
 	}
 
-	private void open(Grid<IndexNode> grid, IndexNode node) {
+	private void open(MusicPageUIBundle bundle, IndexNode node) {
 		if (!node.isDirectory())
 			return;
 		backBtn.setEnabled(true);
-		pushAndRunCommand(() -> populate(grid, node));
+		pushAndRunCommand(bundle, b -> populate(b, node));
 	}
 
-	private HorizontalLayout createButtons(Grid<IndexNode> grid, ValueHolder<IndexNode> nodeHolder) {
+	private HorizontalLayout createButtons(MusicPageUIBundle bundle, ValueHolder<IndexNode> nodeHolder) {
 		Button playBtn = new Button("Přehrát", e -> {
 			VLCControl.sendCommand(VLCCommand.ADD, nodeHolder.getValue().getPath().toString());
 		});
@@ -181,7 +186,7 @@ public class MusicPage extends MainPage {
 		enqueueBtn.addThemeVariants(ButtonVariant.LUMO_SMALL);
 
 		Button openBtn = new Button("Otevřít", e -> {
-			open(grid, nodeHolder.getValue());
+			open(bundle, nodeHolder.getValue());
 		});
 		openBtn.addThemeVariants(ButtonVariant.LUMO_SMALL);
 
@@ -200,16 +205,16 @@ public class MusicPage extends MainPage {
 		return hl;
 	}
 
-	private void reindex(Grid<IndexNode> grid) {
+	private void reindex(MusicPageUIBundle bundle) {
 		MusicIndex.buildIndex();
 		history = new History<>();
-		pushAndRunCommand(() -> populate(grid, MusicIndex.getRootNode()));
+		pushAndRunCommand(bundle, b -> populate(b, MusicIndex.getRootNode()));
 		backBtn.setEnabled(false);
 		forwardBtn.setEnabled(false);
 	}
 
-	private void pushAndRunCommand(Command cmd) {
-		cmd.run();
+	private void pushAndRunCommand(MusicPageUIBundle bundle, Command cmd) {
+		cmd.run(bundle);
 		history.push(cmd);
 		if (!history.isFirst())
 			backBtn.setEnabled(true);
@@ -227,18 +232,19 @@ public class MusicPage extends MainPage {
 		}
 	}
 
-	private void populate(Grid<IndexNode> grid, IndexNode node) {
+	private void populate(MusicPageUIBundle bundle, IndexNode node) {
 		long start = System.currentTimeMillis();
 		List<IndexNode> list = node.getSubnodes();
-		
-		populate(grid, list);
-		
-		updateSeekTimeSpan(System.currentTimeMillis() - start, list.size());
-		currentDirSpan.setText("Zobrazení: '" + node.getPathName() + "'");
+
+		populate(bundle, list);
+
+		updateSeekTimeSpan(bundle, System.currentTimeMillis() - start, list.size());
+		bundle.getCurrentDirSpan().setText("Zobrazení: '" + node.getPathName() + "'");
 	}
 
-	private void populate(Grid<IndexNode> grid, String filter) {
+	private void populate(MusicPageUIBundle bundle, String filter) {
 		long start = System.currentTimeMillis();
+
 		List<IndexNode> list = new ArrayList<>();
 		try {
 			findRecursive(currentNode, filter, list);
@@ -249,15 +255,15 @@ public class MusicPage extends MainPage {
 			return;
 		}
 
-		populate(grid, list);
+		populate(bundle, list);
 
-		updateSeekTimeSpan(System.currentTimeMillis() - start, list.size());
-		currentDirSpan.setText("Vyhledání: '" + filter + "'");
+		updateSeekTimeSpan(bundle, System.currentTimeMillis() - start, list.size());
+		bundle.getCurrentDirSpan().setText("Vyhledání: '" + filter + "'");
 	}
 
-	private void populate(Grid<IndexNode> grid, List<IndexNode> list) {
+	private void populate(MusicPageUIBundle bundle, List<IndexNode> list) {
 		nodeOperationsLayout.setEnabled(false);
 		nodeParentOperationsLayout.setEnabled(false);
-		grid.setDataProvider(new ListDataProvider<>(list));
+		bundle.getGrid().setDataProvider(new ListDataProvider<>(list));
 	}
 }

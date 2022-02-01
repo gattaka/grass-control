@@ -21,6 +21,10 @@ import cz.gattserver.grass.control.ui.common.TrayControl;
 public class Main {
 
 	public static void main(String[] args) throws Exception {
+		TrayControl.INSTANCE.create();
+		BluetoothControl.INSTANCE.start();
+		SpeechControl.INSTANCE.start();
+
 		// src/main/webapp nesmí být prázdná složka, jinak ji maven nepřidá do
 		// buildu a tohle pak bude padat na NPE
 		URL webRootLocation = Main.class.getResource("/webapp/");
@@ -40,9 +44,5 @@ public class Main {
 		server.setHandler(context);
 		server.start();
 		server.join();
-
-		TrayControl.INSTANCE.create();
-		BluetoothControl.INSTANCE.start();
-		SpeechControl.INSTANCE.start();
 	}
 }

@@ -30,7 +30,7 @@ public enum TrayControl {
 
 	public static InputStream getIconStream() throws IOException {
 		// src/main/resources/favicon.png
-		return TrayControl.class.getClassLoader().getResourceAsStream("favicon.png");
+		return TrayControl.class.getClassLoader().getResourceAsStream("webapp/icons/favicon.png");
 	}
 
 	public static BufferedImage getIcon() throws IOException {
