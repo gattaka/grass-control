@@ -59,7 +59,7 @@ public enum TrayControl {
 		popup.add(historyItem);
 
 		MenuItem musicItem = new MenuItem("Vyhledávání hudby");
-		historyItem.addActionListener(e -> openPage("localhost:8765/music"));
+		musicItem.addActionListener(e -> openPage("localhost:8765/music"));
 		popup.add(musicItem);
 
 		popup.addSeparator();
@@ -77,6 +77,8 @@ public enum TrayControl {
 	}
 
 	private void openPage(String url) {
+		if (!url.startsWith("http"))
+			url = "http://" + url;
 		if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
 			try {
 				Desktop.getDesktop().browse(new URI(url));
