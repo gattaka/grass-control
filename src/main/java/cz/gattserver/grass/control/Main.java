@@ -16,6 +16,7 @@ import com.vaadin.flow.server.startup.ServletContextListeners;
 
 import cz.gattserver.grass.control.bluetooth.BluetoothControl;
 import cz.gattserver.grass.control.speech.SpeechControl;
+import cz.gattserver.grass.control.ui.MusicIndex;
 import cz.gattserver.grass.control.ui.common.TrayControl;
 
 public class Main {
@@ -24,6 +25,8 @@ public class Main {
 		TrayControl.INSTANCE.create();
 		BluetoothControl.INSTANCE.start();
 		SpeechControl.INSTANCE.start();
+
+		new Thread(() -> MusicIndex.buildIndex()).start();
 
 		// src/main/webapp nesmí být prázdná složka, jinak ji maven nepřidá do
 		// buildu a tohle pak bude padat na NPE

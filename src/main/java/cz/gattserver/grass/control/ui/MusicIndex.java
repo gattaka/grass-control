@@ -16,14 +16,12 @@ public class MusicIndex {
 
 	private static IndexNode rootNode;
 
-	static {
-		buildIndex();
-	}
-
 	public static void buildIndex() {
-		logger.info("Building music index");
-		buildIndex(rootNode = new IndexNode(null, ROOT));
-		logger.info("Building music index finished");
+		synchronized (MusicIndex.class) {
+			logger.info("Building music index");
+			buildIndex(rootNode = new IndexNode(null, ROOT));
+			logger.info("Building music index finished");
+		}
 	}
 
 	private static void buildIndex(IndexNode node) {
@@ -40,7 +38,9 @@ public class MusicIndex {
 	}
 
 	public static IndexNode getRootNode() {
-		return rootNode;
+		synchronized (MusicIndex.class) {
+			return rootNode;
+		}
 	}
 
 }

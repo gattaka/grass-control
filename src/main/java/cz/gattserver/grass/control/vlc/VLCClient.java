@@ -156,6 +156,8 @@ class VLCClient extends TelnetClient implements Runnable, TelnetNotificationHand
 	}
 
 	private void sendString(String string) throws IOException {
+		if (getOutputStream() == null)
+			connect();
 		getOutputStream().write((string + "\n").getBytes(Charset.forName("UTF-8")));
 		getOutputStream().flush();
 	}
