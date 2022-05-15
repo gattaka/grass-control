@@ -15,6 +15,7 @@ import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.grid.FooterRow;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.Grid.Column;
+import com.vaadin.flow.component.grid.Grid.SelectionMode;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -41,7 +42,6 @@ public class MusicPage extends MainPage {
 	private IndexNode currentNode;
 
 	private ValueHolder<IndexNode> selectedNode;
-	private ValueHolder<IndexNode> selectedNodeParent;
 
 	private HorizontalLayout nodeOperationsLayout;
 	private HorizontalLayout nodeParentOperationsLayout;
@@ -53,12 +53,12 @@ public class MusicPage extends MainPage {
 		setSizeFull();
 
 		selectedNode = new ValueHolder<>();
-		selectedNodeParent = new ValueHolder<>();
 
 		currentNode = MusicIndex.getRootNode();
 
 		Grid<IndexNode> grid = new Grid<>();
 		grid.addThemeVariants(GridVariant.LUMO_COMPACT, GridVariant.LUMO_ROW_STRIPES, GridVariant.LUMO_COLUMN_BORDERS);
+		grid.setSelectionMode(SelectionMode.MULTI);
 		grid.setSizeFull();
 
 		Column<IndexNode> nazevColumn = grid.addColumn(new TextRenderer<IndexNode>(IndexNode::getPathName))
@@ -78,22 +78,15 @@ public class MusicPage extends MainPage {
 
 		MusicPageUIBundle bundle = new MusicPageUIBundle(grid, seekTimeSpan, currentDirSpan);
 
+		grid.addItemClickListener(e -> {
+			grid.select(e.getItem());
+		});
+
 		grid.addItemDoubleClickListener(e -> {
 			if (e.getColumn() == nazevColumn) {
 				open(bundle, e.getItem());
 			} else if (e.getColumn() == parentColumn) {
 				open(bundle, e.getItem().getParentNode());
-			}
-		});
-		grid.addItemClickListener(e -> {
-			if (!grid.getSelectedItems().isEmpty()) {
-				selectedNode.setValue(e.getItem());
-				selectedNodeParent.setValue(e.getItem().getParentNode());
-				nodeOperationsLayout.setEnabled(true);
-				nodeParentOperationsLayout.setEnabled(true);
-			} else {
-				nodeOperationsLayout.setEnabled(false);
-				nodeParentOperationsLayout.setEnabled(false);
 			}
 		});
 
@@ -127,8 +120,8 @@ public class MusicPage extends MainPage {
 
 		layout.add(grid);
 
-		nodeOperationsLayout = createButtons(bundle, selectedNode);
-		nodeParentOperationsLayout = createButtons(bundle, selectedNodeParent);
+		nodeOperationsLayout = createButtons(bundle, grid, false);
+		nodeParentOperationsLayout = createButtons(bundle, grid, true);
 
 		FooterRow footer = grid.appendFooterRow();
 		footer.getCell(nazevColumn).setComponent(nodeOperationsLayout);
@@ -168,38 +161,52 @@ public class MusicPage extends MainPage {
 	}
 
 	private void open(MusicPageUIBundle bundle, IndexNode node) {
-		if (!node.isDirectory())
-			return;
-		backBtn.setEnabled(true);
-		pushAndRunCommand(bundle, b -> populate(b, node));
+		if (node.isDirectory()) {
+			backBtn.setEnabled(true);
+			pushAndRunCommand(bundle, b -> populate(b, node));
+		} else {
+			VLCControl.sendCommand(VLCCommand.ADD, node.getPath().toString());
+		}
 	}
 
-	private HorizontalLayout createButtons(MusicPageUIBundle bundle, ValueHolder<IndexNode> nodeHolder) {
+	private HorizontalLayout createButtons(MusicPageUIBundle bundle, Grid<IndexNode> grid, boolean forParent) {
 		Button playBtn = new Button("Přehrát", e -> {
-			VLCControl.sendCommand(VLCCommand.ADD, nodeHolder.getValue().getPath().toString());
+			for (IndexNode item : grid.getSelectedItems()) {
+				if (forParent)
+					item = item.getParentNode();
+				VLCControl.sendCommand(VLCCommand.ADD, item.getPath().toString());
+			}
 		});
 		playBtn.addThemeVariants(ButtonVariant.LUMO_SMALL);
+		playBtn.setEnabled(false);
 
 		Button enqueueBtn = new Button("Přidat", e -> {
-			VLCControl.sendCommand(VLCCommand.ENQUEUE, nodeHolder.getValue().getPath().toString());
+			for (IndexNode item : grid.getSelectedItems()) {
+				if (forParent)
+					item = item.getParentNode();
+				VLCControl.sendCommand(VLCCommand.ENQUEUE, item.getPath().toString());
+			}
 		});
 		enqueueBtn.addThemeVariants(ButtonVariant.LUMO_SMALL);
+		enqueueBtn.setEnabled(false);
 
 		Button openBtn = new Button("Otevřít", e -> {
-			open(bundle, nodeHolder.getValue());
+			IndexNode item = grid.getSelectedItems().iterator().next();
+			if (forParent)
+				item = item.getParentNode();
+			open(bundle, item);
 		});
 		openBtn.addThemeVariants(ButtonVariant.LUMO_SMALL);
+		openBtn.setEnabled(false);
 
-		HorizontalLayout hl = new HorizontalLayout(new HorizontalLayout(playBtn, enqueueBtn, openBtn)) {
-			private static final long serialVersionUID = 8082960470793958627L;
+		grid.addSelectionListener(e -> {
+			int size = e.getAllSelectedItems().size();
+			playBtn.setEnabled(size > 0);
+			enqueueBtn.setEnabled(size > 0);
+			openBtn.setEnabled(size == 1 && e.getFirstSelectedItem().get().isDirectory());
+		});
 
-			@Override
-			public void setEnabled(boolean enabled) {
-				openBtn.setEnabled(nodeHolder.getValue() == null ? false : nodeHolder.getValue().isDirectory());
-				super.setEnabled(enabled);
-			}
-		};
-		hl.setEnabled(false);
+		HorizontalLayout hl = new HorizontalLayout(new HorizontalLayout(playBtn, enqueueBtn, openBtn));
 		hl.setSpacing(true);
 		hl.setAlignItems(Alignment.CENTER);
 		return hl;
@@ -262,8 +269,6 @@ public class MusicPage extends MainPage {
 	}
 
 	private void populate(MusicPageUIBundle bundle, List<IndexNode> list) {
-		nodeOperationsLayout.setEnabled(false);
-		nodeParentOperationsLayout.setEnabled(false);
 		bundle.getGrid().setDataProvider(new ListDataProvider<>(list));
 	}
 }
