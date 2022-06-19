@@ -41,18 +41,15 @@ public class MusicPage extends MainPage {
 	private static History<Command> history = new History<>();
 	private IndexNode currentNode;
 
-	private ValueHolder<IndexNode> selectedNode;
-
 	private HorizontalLayout nodeOperationsLayout;
 	private HorizontalLayout nodeParentOperationsLayout;
 
 	private Button backBtn;
 	private Button forwardBtn;
+	private Button upBtn;
 
 	public MusicPage() {
 		setSizeFull();
-
-		selectedNode = new ValueHolder<>();
 
 		currentNode = MusicIndex.getRootNode();
 
@@ -79,14 +76,18 @@ public class MusicPage extends MainPage {
 		MusicPageUIBundle bundle = new MusicPageUIBundle(grid, seekTimeSpan, currentDirSpan);
 
 		grid.addItemClickListener(e -> {
-			grid.select(e.getItem());
-		});
-
-		grid.addItemDoubleClickListener(e -> {
-			if (e.getColumn() == nazevColumn) {
-				open(bundle, e.getItem());
-			} else if (e.getColumn() == parentColumn) {
-				open(bundle, e.getItem().getParentNode());
+			if (e.getClickCount() == 1) {
+				if (grid.getSelectedItems().contains(e.getItem())) {
+					grid.deselect(e.getItem());
+				} else {
+					grid.select(e.getItem());
+				}
+			} else {
+				if (e.getColumn() == nazevColumn) {
+					open(bundle, e.getItem());
+				} else if (e.getColumn() == parentColumn) {
+					open(bundle, e.getItem().getParentNode());
+				}
 			}
 		});
 
@@ -102,16 +103,24 @@ public class MusicPage extends MainPage {
 		});
 		forwardBtn.setEnabled(false);
 
+		upBtn = new Button("^", e -> {
+			if (currentNode == null && currentNode.equals(MusicIndex.getRootNode()))
+				return;
+			open(bundle, currentNode.getParentNode());
+			updateHistoryButtons();
+		});
+
 		TextField searchField = new TextField();
 		searchField.setWidthFull();
 
 		Button searchBtn = new Button("Hledat", e -> {
 			pushAndRunCommand(bundle, b -> populate(b, searchField.getValue()));
+			currentNode = null;
 		});
 		searchBtn.setWidth(null);
 		searchField.addKeyPressListener(Key.ENTER, e -> searchBtn.click());
 
-		HorizontalLayout topLayout = new HorizontalLayout(new HorizontalLayout(backBtn, forwardBtn, searchBtn),
+		HorizontalLayout topLayout = new HorizontalLayout(new HorizontalLayout(backBtn, forwardBtn, upBtn, searchBtn),
 				searchField);
 		topLayout.setWidthFull();
 		layout.add(topLayout);
@@ -162,6 +171,7 @@ public class MusicPage extends MainPage {
 
 	private void open(MusicPageUIBundle bundle, IndexNode node) {
 		if (node.isDirectory()) {
+			currentNode = node;
 			backBtn.setEnabled(true);
 			pushAndRunCommand(bundle, b -> populate(b, node));
 		} else {
