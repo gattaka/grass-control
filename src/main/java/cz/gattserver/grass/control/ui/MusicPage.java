@@ -39,7 +39,8 @@ public class MusicPage extends MainPage {
 	private static final Logger logger = LoggerFactory.getLogger(MusicPage.class);
 
 	private static History<Command> history = new History<>();
-	private IndexNode currentNode;
+	private IndexNode rootNode;
+	private IndexNode lastNode;
 
 	private HorizontalLayout nodeOperationsLayout;
 	private HorizontalLayout nodeParentOperationsLayout;
@@ -51,7 +52,7 @@ public class MusicPage extends MainPage {
 	public MusicPage() {
 		setSizeFull();
 
-		currentNode = MusicIndex.getRootNode();
+		rootNode = MusicIndex.getRootNode();
 
 		Grid<IndexNode> grid = new Grid<>();
 		grid.addThemeVariants(GridVariant.LUMO_COMPACT, GridVariant.LUMO_ROW_STRIPES, GridVariant.LUMO_COLUMN_BORDERS);
@@ -104,9 +105,9 @@ public class MusicPage extends MainPage {
 		forwardBtn.setEnabled(false);
 
 		upBtn = new Button("^", e -> {
-			if (currentNode == null && currentNode.equals(MusicIndex.getRootNode()))
+			if (lastNode == null || lastNode.equals(MusicIndex.getRootNode()))
 				return;
-			open(bundle, currentNode.getParentNode());
+			open(bundle, lastNode.getParentNode());
 			updateHistoryButtons();
 		});
 
@@ -114,8 +115,8 @@ public class MusicPage extends MainPage {
 		searchField.setWidthFull();
 
 		Button searchBtn = new Button("Hledat", e -> {
-			pushAndRunCommand(bundle, b -> populate(b, searchField.getValue()));
-			currentNode = null;
+			pushAndRunCommand(bundle, b -> populateBySearch(b, searchField.getValue()));
+			lastNode = null;
 		});
 		searchBtn.setWidth(null);
 		searchField.addKeyPressListener(Key.ENTER, e -> searchBtn.click());
@@ -151,7 +152,7 @@ public class MusicPage extends MainPage {
 
 		if (history.isEmpty()) {
 			pushAndRunCommand(bundle, b -> {
-				populate(b, MusicIndex.getRootNode());
+				populateByParent(b, MusicIndex.getRootNode());
 			});
 		} else {
 			history.getCurrent().run(bundle);
@@ -171,9 +172,9 @@ public class MusicPage extends MainPage {
 
 	private void open(MusicPageUIBundle bundle, IndexNode node) {
 		if (node.isDirectory()) {
-			currentNode = node;
+			lastNode = node;
 			backBtn.setEnabled(true);
-			pushAndRunCommand(bundle, b -> populate(b, node));
+			pushAndRunCommand(bundle, b -> populateByParent(b, node));
 		} else {
 			VLCControl.sendCommand(VLCCommand.ADD, node.getPath().toString());
 		}
@@ -225,7 +226,7 @@ public class MusicPage extends MainPage {
 	private void reindex(MusicPageUIBundle bundle) {
 		MusicIndex.buildIndex();
 		history = new History<>();
-		pushAndRunCommand(bundle, b -> populate(b, MusicIndex.getRootNode()));
+		pushAndRunCommand(bundle, b -> populateByParent(b, MusicIndex.getRootNode()));
 		backBtn.setEnabled(false);
 		forwardBtn.setEnabled(false);
 	}
@@ -249,7 +250,7 @@ public class MusicPage extends MainPage {
 		}
 	}
 
-	private void populate(MusicPageUIBundle bundle, IndexNode node) {
+	private void populateByParent(MusicPageUIBundle bundle, IndexNode node) {
 		long start = System.currentTimeMillis();
 		List<IndexNode> list = node.getSubnodes();
 
@@ -259,12 +260,12 @@ public class MusicPage extends MainPage {
 		bundle.getCurrentDirSpan().setText("Zobrazení: '" + node.getPathName() + "'");
 	}
 
-	private void populate(MusicPageUIBundle bundle, String filter) {
+	private void populateBySearch(MusicPageUIBundle bundle, String filter) {
 		long start = System.currentTimeMillis();
 
 		List<IndexNode> list = new ArrayList<>();
 		try {
-			findRecursive(currentNode, filter, list);
+			findRecursive(rootNode, filter, list);
 		} catch (IOException e) {
 			String msg = "Nezdařilo se získat přehled adresáře hudby";
 			logger.error(msg, e);
