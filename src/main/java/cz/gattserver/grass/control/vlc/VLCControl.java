@@ -1,16 +1,15 @@
 package cz.gattserver.grass.control.vlc;
 
+import cz.gattserver.grass.control.system.CmdControl;
+import cz.gattserver.grass.control.ui.common.MessageLevel;
+import cz.gattserver.grass.control.ui.common.TrayControl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.util.function.Function;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import cz.gattserver.grass.control.system.CmdControl;
-import cz.gattserver.grass.control.ui.common.MessageLevel;
-import cz.gattserver.grass.control.ui.common.TrayControl;
 
 public enum VLCControl {
 

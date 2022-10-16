@@ -1,14 +1,14 @@
 package cz.gattserver.grass.control.vlc;
 
-import java.beans.PropertyChangeSupport;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.Charset;
-
 import org.apache.commons.net.telnet.*;
 import org.apache.commons.net.telnet.TelnetClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.beans.PropertyChangeSupport;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.Charset;
 
 /**
  * Exposes control of VLC media player (videolan.org) from java. VLC must be set

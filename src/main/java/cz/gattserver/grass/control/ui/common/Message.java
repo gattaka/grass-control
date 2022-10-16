@@ -1,9 +1,9 @@
 package cz.gattserver.grass.control.ui.common;
 
-import java.io.InputStream;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.InputStream;
 
 public class Message {
 

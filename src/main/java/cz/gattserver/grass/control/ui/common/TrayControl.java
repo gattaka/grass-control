@@ -1,24 +1,16 @@
 package cz.gattserver.grass.control.ui.common;
 
-import java.awt.AWTException;
-import java.awt.CheckboxMenuItem;
-import java.awt.Desktop;
-import java.awt.MenuItem;
-import java.awt.PopupMenu;
-import java.awt.SystemTray;
-import java.awt.TrayIcon;
+import cz.gattserver.grass.control.speech.SpeechControl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.imageio.ImageIO;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
-
-import javax.imageio.ImageIO;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import cz.gattserver.grass.control.speech.SpeechControl;
 
 public enum TrayControl {
 
@@ -30,7 +22,7 @@ public enum TrayControl {
 
 	public static InputStream getIconStream() throws IOException {
 		// src/main/resources/favicon.png
-		return TrayControl.class.getClassLoader().getResourceAsStream("webapp/icons/favicon.png");
+		return TrayControl.class.getClassLoader().getResourceAsStream("static/VAADIN/icons/favicon.png");
 	}
 
 	public static BufferedImage getIcon() throws IOException {

@@ -1,18 +1,13 @@
 package cz.gattserver.grass.control;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-
-import javax.sound.sampled.AudioFormat;
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.DataLine;
-import javax.sound.sampled.SourceDataLine;
-import javax.sound.sampled.TargetDataLine;
-
 import org.vosk.LibVosk;
 import org.vosk.LogLevel;
 import org.vosk.Model;
 import org.vosk.Recognizer;
+
+import javax.sound.sampled.*;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 
 public class TestMain {
 

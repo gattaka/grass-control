@@ -1,14 +1,5 @@
 package cz.gattserver.grass.control.ui;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -25,12 +16,21 @@ import com.vaadin.flow.data.provider.ListDataProvider;
 import com.vaadin.flow.data.renderer.TextRenderer;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
-
+import com.vaadin.flow.router.RouteAlias;
 import cz.gattserver.grass.control.ui.common.TrayControl;
 import cz.gattserver.grass.control.vlc.VLCCommand;
 import cz.gattserver.grass.control.vlc.VLCControl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Route("music")
+@RouteAlias("")
 @PageTitle("Vyhledávání hudby")
 public class MusicPage extends MainPage {
 

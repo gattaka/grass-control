@@ -1,8 +1,5 @@
 package cz.gattserver.grass.control.ui.common;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class MessageWindowRegister {
 
 	// // K této kolekci se musí přistupovat přes synchronized

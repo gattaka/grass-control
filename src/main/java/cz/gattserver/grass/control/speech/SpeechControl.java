@@ -1,20 +1,19 @@
 package cz.gattserver.grass.control.speech;
 
-import java.io.IOException;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import cz.gattserver.grass.control.system.CmdControl;
 import cz.gattserver.grass.control.ui.common.MessageLevel;
 import cz.gattserver.grass.control.ui.common.TrayControl;
 import cz.gattserver.grass.control.vlc.VLCCommand;
 import cz.gattserver.grass.control.vlc.VLCControl;
 import info.debatty.java.stringsimilarity.Levenshtein;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public enum SpeechControl {
 

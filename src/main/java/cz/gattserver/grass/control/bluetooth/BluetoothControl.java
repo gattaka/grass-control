@@ -1,19 +1,17 @@
 package cz.gattserver.grass.control.bluetooth;
 
-import java.awt.Toolkit;
-import java.io.IOException;
-import java.io.InputStream;
+import cz.gattserver.grass.control.system.CmdControl;
+import cz.gattserver.grass.control.vlc.VLCCommand;
+import cz.gattserver.grass.control.vlc.VLCControl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.bluetooth.RemoteDevice;
 import javax.microedition.io.Connector;
 import javax.microedition.io.StreamConnection;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import cz.gattserver.grass.control.system.CmdControl;
-import cz.gattserver.grass.control.vlc.VLCCommand;
-import cz.gattserver.grass.control.vlc.VLCControl;
+import java.awt.*;
+import java.io.IOException;
+import java.io.InputStream;
 
 public enum BluetoothControl {
 

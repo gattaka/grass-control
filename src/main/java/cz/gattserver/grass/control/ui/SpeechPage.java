@@ -1,10 +1,5 @@
 package cz.gattserver.grass.control.ui;
 
-import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
@@ -14,9 +9,12 @@ import com.vaadin.flow.data.renderer.LocalDateTimeRenderer;
 import com.vaadin.flow.data.renderer.TextRenderer;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
-
 import cz.gattserver.grass.control.speech.SpeechControl;
 import cz.gattserver.grass.control.speech.SpeechLogTO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.List;
 
 @Route("speech")
 @PageTitle("Hlasové ovládání")

@@ -1,20 +1,15 @@
 package cz.gattserver.grass.control.speech;
 
-import java.io.IOException;
-import java.util.function.Consumer;
-
-import javax.sound.sampled.AudioFormat;
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.DataLine;
-import javax.sound.sampled.LineUnavailableException;
-import javax.sound.sampled.TargetDataLine;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vosk.LibVosk;
 import org.vosk.LogLevel;
 import org.vosk.Model;
 import org.vosk.Recognizer;
+
+import javax.sound.sampled.*;
+import java.io.IOException;
+import java.util.function.Consumer;
 
 public class VoskRecognizer {
 
