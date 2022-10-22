@@ -109,7 +109,7 @@
 
 	<profiles>
 		<profile>
-			<id>production</id>
+			<id>prod</id>
 			<build>
 				<plugins>
 					<plugin>
